@@ -1,6 +1,8 @@
 *.iml
 .idea
 
+/input
+
 
 # Added by cargo
 
