@@ -1,44 +1,25 @@
-use std::cmp::max;
-
 fn solve(input: &Vec<String>) -> i32 {
-    let mut current_total = 0;
-    let mut max_total = 0;
-
-    for line in input {
-        if line.is_empty() {
-            max_total = max(current_total, max_total);
-            current_total = 0;
-        } else {
-            let value: i32 = line.parse().expect("line should be an integer");
-            current_total += value;
-        }
-    }
-
-    max(current_total, max_total)
+    input.split(|s| s.is_empty())
+        .map(parse_and_sum)
+        .max()
+        .expect("list should not be empty")
 }
 
 fn solve_part_2(input: &Vec<String>) -> i32 {
-    let mut current_total = 0;
-    let mut max_totals = [0, 0, 0];
+    let mut sums: Vec<i32> = input.split(|s| s.is_empty())
+        .map(parse_and_sum)
+        .collect();
 
-    for line in input {
-        if line.is_empty() {
-            if current_total > max_totals[0] {
-                max_totals[0] = current_total;
-                max_totals.sort();
-            }
-            current_total = 0;
-        } else {
-            let value: i32 = line.parse().expect("line should be an integer");
-            current_total += value;
-        }
-    }
+    sums.sort_by(|a, b| a.cmp(b).reverse());
 
-    if current_total > max_totals[0] {
-        max_totals[0] = current_total;
-    }
+    sums[..3].iter().sum()
+}
 
-    max_totals.iter().sum()
+fn parse_and_sum(slice: &[String]) -> i32 {
+    slice.iter().map(|s| {
+        s.parse::<i32>().expect("s should be an integer")
+    })
+        .sum()
 }
 
 fn main() {
