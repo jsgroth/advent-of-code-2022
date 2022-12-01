@@ -1,11 +1,11 @@
-fn solve(input: &Vec<String>) -> i32 {
+fn solve(input: &[String]) -> i32 {
     input.split(|s| s.is_empty())
         .map(parse_and_sum)
         .max()
         .expect("list should not be empty")
 }
 
-fn solve_part_2(input: &Vec<String>) -> i32 {
+fn solve_part_2(input: &[String]) -> i32 {
     let mut sums: Vec<i32> = input.split(|s| s.is_empty())
         .map(parse_and_sum)
         .collect();
