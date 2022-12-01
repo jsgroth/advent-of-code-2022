@@ -36,7 +36,6 @@ fn solve_part_2(input: &Vec<String>) -> i32 {
 
     if current_total > max_totals[0] {
         max_totals[0] = current_total;
-        max_totals.sort();
     }
 
     max_totals.iter().sum()
