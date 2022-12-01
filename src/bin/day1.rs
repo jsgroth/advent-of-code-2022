@@ -16,9 +16,8 @@ fn solve_part_2(input: &Vec<String>) -> i32 {
 }
 
 fn parse_and_sum(slice: &[String]) -> i32 {
-    slice.iter().map(|s| {
-        s.parse::<i32>().expect("s should be an integer")
-    })
+    slice.iter()
+        .map(|s| s.parse::<i32>().expect("s should be an integer"))
         .sum()
 }
 
