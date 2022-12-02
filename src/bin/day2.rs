@@ -49,17 +49,13 @@ const DRAW_SCORE: i32 = 3;
 const LOSE_SCORE: i32 = 0;
 
 fn solve(input: &str) -> i32 {
-    let plays: Vec<(Play, Play)> = input.lines().map(|line| {
+    input.lines().map(|line| {
         let opponent_play = Play::from_char(line.chars().next().expect("no line should be empty"));
         let your_play = Play::from_char(line.chars().last().expect("no line should be empty"));
-        (opponent_play, your_play)
-    })
-        .collect();
 
-    plays.iter().map(|(opponent_play, your_play)| {
         let game_score = if opponent_play == your_play {
             DRAW_SCORE
-        } else if your_play.beats(opponent_play) {
+        } else if your_play.beats(&opponent_play) {
             WIN_SCORE
         } else {
             LOSE_SCORE
