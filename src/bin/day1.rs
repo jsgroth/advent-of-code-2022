@@ -22,7 +22,7 @@ fn parse_and_sum(slice: &[String]) -> i32 {
 }
 
 fn main() {
-    let input = advent_of_code_2022::read_input(1).expect("unable to read input file");
+    let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
     let solution1 = solve(&input);
     println!("{solution1}");

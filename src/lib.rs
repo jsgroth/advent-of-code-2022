@@ -1,10 +1,18 @@
-use std::{fs, io};
+use std::{env, fs, io};
 use std::path::Path;
 
-pub fn read_input(day: u32) -> io::Result<Vec<String>> {
-    let path_str = format!("input/input{day}.txt");
+// Read the contents of the file specified by the first command line argument, one string per line
+pub fn read_input() -> io::Result<Vec<String>> {
+    let mut args = env::args();
 
-    let raw_contents = fs::read_to_string(Path::new(&path_str))?;
+    // args[0] is executable path
+    args.next();
+
+    let input_path = args.next().ok_or(
+        io::Error::new(io::ErrorKind::NotFound, "missing input file arg")
+    )?;
+
+    let raw_contents = fs::read_to_string(Path::new(&input_path))?;
 
     let mut lines: Vec<String> = raw_contents.split('\n')
         .map(|line| String::from(line))
