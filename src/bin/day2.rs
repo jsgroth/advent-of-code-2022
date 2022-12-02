@@ -48,8 +48,8 @@ const WIN_SCORE: i32 = 6;
 const DRAW_SCORE: i32 = 3;
 const LOSE_SCORE: i32 = 0;
 
-fn solve(input: &[String]) -> i32 {
-    let plays: Vec<(Play, Play)> = input.iter().map(|line| {
+fn solve(input: &str) -> i32 {
+    let plays: Vec<(Play, Play)> = input.lines().map(|line| {
         let opponent_play = Play::from_char(line.chars().next().expect("no line should be empty"));
         let your_play = Play::from_char(line.chars().last().expect("no line should be empty"));
         (opponent_play, your_play)
@@ -70,8 +70,8 @@ fn solve(input: &[String]) -> i32 {
         .sum()
 }
 
-fn solve_part_2(input: &[String]) -> i32 {
-    input.iter().map(|line| {
+fn solve_part_2(input: &str) -> i32 {
+    input.lines().map(|line| {
         let opponent_play = Play::from_char(line.chars().next().expect("no line should be empty"));
 
         let last_char = line.chars().last().expect("no line should be empty");

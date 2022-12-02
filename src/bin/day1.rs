@@ -1,12 +1,14 @@
-fn solve(input: &[String]) -> i32 {
-    input.split(|s| s.is_empty())
+fn solve(input: &str) -> i32 {
+    let lines: Vec<&str> = input.lines().collect();
+    lines.split(|s| s.is_empty())
         .map(parse_and_sum)
         .max()
         .expect("list should not be empty")
 }
 
-fn solve_part_2(input: &[String]) -> i32 {
-    let mut sums: Vec<i32> = input.split(|s| s.is_empty())
+fn solve_part_2(input: &str) -> i32 {
+    let lines: Vec<&str> = input.lines().collect();
+    let mut sums: Vec<i32> = lines.split(|s| s.is_empty())
         .map(parse_and_sum)
         .collect();
 
@@ -15,7 +17,7 @@ fn solve_part_2(input: &[String]) -> i32 {
     sums[..3].iter().sum()
 }
 
-fn parse_and_sum(slice: &[String]) -> i32 {
+fn parse_and_sum(slice: &[&str]) -> i32 {
     slice.iter()
         .map(|s| s.parse::<i32>().expect("s should be an integer"))
         .sum()
