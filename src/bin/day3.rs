@@ -3,14 +3,6 @@
 
 use std::collections::HashSet;
 
-fn priority(c: char) -> u32 {
-    if c.is_lowercase() {
-        (c as u32) - ('a' as u32) + 1
-    } else {
-        (c as u32) - ('A' as u32) + 27
-    }
-}
-
 fn solve(input: &str) -> u32 {
     input.lines().map(|line| {
         let (lhalf, rhalf) = line.split_at(line.len() / 2);
@@ -44,6 +36,14 @@ fn solve_part_2(input: &str) -> u32 {
         priority(ch)
     })
         .sum()
+}
+
+fn priority(c: char) -> u32 {
+    if c.is_lowercase() {
+        (c as u32) - ('a' as u32) + 1
+    } else {
+        (c as u32) - ('A' as u32) + 27
+    }
 }
 
 fn main() {
