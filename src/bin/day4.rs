@@ -8,12 +8,10 @@ struct Range {
 
 impl Range {
     fn from_str(s: &str) -> Range {
-        let mut split = s.split('-');
+        let (left, right) = s.split_once('-').expect("range should have one dash");
 
-        let left: u32 = split.next().expect("range should not be empty string")
-            .parse().expect("left end of range should be an integer");
-        let right: u32 = split.next().expect("every range should have a dash")
-            .parse().expect("right end of range should be an integer");
+        let left: u32 = left.parse().expect("left end should be an integer");
+        let right: u32 = right.parse().expect("right end should be an integer");
 
         Range { left, right }
     }
@@ -46,10 +44,7 @@ fn solve_part_2(input: &str) -> usize {
 }
 
 fn parse_input_line(line: &str) -> (Range, Range) {
-    let mut split = line.split(',');
-
-    let left_range = split.next().expect("no line should be empty");
-    let right_range = split.next().expect("every line should have a comma");
+    let (left_range, right_range) = line.split_once(',').expect("line should have one comma");
 
     (Range::from_str(left_range), Range::from_str(right_range))
 }
