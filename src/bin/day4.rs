@@ -7,6 +7,17 @@ struct Range {
 }
 
 impl Range {
+    fn from_str(s: &str) -> Range {
+        let mut split = s.split('-');
+
+        let left: u32 = split.next().expect("range should not be empty string")
+            .parse().expect("left end of range should be an integer");
+        let right: u32 = split.next().expect("every range should have a dash")
+            .parse().expect("right end of range should be an integer");
+
+        Range { left, right }
+    }
+
     fn fully_contains(&self, other: &Range) -> bool {
         self.left <= other.left && self.right >= other.right
     }
@@ -40,18 +51,7 @@ fn parse_input_line(line: &str) -> (Range, Range) {
     let left_range = split.next().expect("no line should be empty");
     let right_range = split.next().expect("every line should have a comma");
 
-    (parse_range(left_range), parse_range(right_range))
-}
-
-fn parse_range(range: &str) -> Range {
-    let mut split = range.split('-');
-
-    let left: u32 = split.next().expect("range should not be empty string")
-        .parse().expect("left end of range should be an integer");
-    let right: u32 = split.next().expect("every range should have a dash")
-        .parse().expect("right end of range should be an integer");
-
-    Range { left, right }
+    (Range::from_str(left_range), Range::from_str(right_range))
 }
 
 fn main() {
