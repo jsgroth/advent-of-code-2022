@@ -50,7 +50,7 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
 
     let mut stacks: Vec<Vec<char>> = Vec::with_capacity(num_stacks);
     for _ in 0..num_stacks {
-        stacks.push(Vec::new());
+        stacks.push(Vec::with_capacity(lines.len() - 1));
     }
 
     for line in lines[..lines.len()-1].iter().rev() {
