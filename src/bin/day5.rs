@@ -8,23 +8,7 @@ struct Move {
     num: usize,
 }
 
-fn solve(input: &str) -> String {
-    let (mut stacks, moves) = parse_input(input);
-
-    for mov in &moves {
-        for _ in 0..mov.num {
-            let from_stack = &mut stacks[mov.from - 1];
-            let c = from_stack.remove(from_stack.len() - 1);
-
-            stacks[mov.to - 1].push(c);
-        }
-    }
-
-    stacks.iter().map(|stack| stack.last().expect("no stack should be empty"))
-        .collect()
-}
-
-fn solve_part_2(input: &str) -> String {
+fn solve(input: &str, can_move_in_bulk: bool) -> String {
     let (mut stacks, moves) = parse_input(input);
 
     for mov in &moves {
@@ -32,6 +16,9 @@ fn solve_part_2(input: &str) -> String {
         let truncated_len = from_stack.len() - mov.num;
 
         let mut moved_chars: Vec<char> = from_stack[truncated_len..].iter().map(|&c| c).collect();
+        if !can_move_in_bulk {
+            moved_chars.reverse();
+        }
 
         from_stack.truncate(truncated_len);
 
@@ -106,9 +93,9 @@ fn parse_moves(lines: &[&str]) -> Vec<Move> {
 fn main() {
     let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
-    let solution1 = solve(&input);
+    let solution1 = solve(&input, false);
     println!("{solution1}");
 
-    let solution2 = solve_part_2(&input);
+    let solution2 = solve(&input, true);
     println!("{solution2}");
 }
