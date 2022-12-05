@@ -54,14 +54,9 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
     }
 
     for line in lines[..lines.len()-1].iter().rev() {
-        let line = line.as_bytes();
-        for i in 0..num_stacks {
-            let j = 4 * i + 1;
-            if let Some(&c) = line.get(j) {
-                let c = c as char;
-                if c != ' ' {
-                    stacks[i].push(c);
-                }
+        for (i, c) in line.chars().skip(1).step_by(4).enumerate() {
+            if c != ' ' {
+                stacks[i].push(c);
             }
         }
     }
@@ -73,16 +68,11 @@ fn parse_moves(lines: &[&str]) -> Vec<Move> {
     let mut moves: Vec<Move> = Vec::with_capacity(lines.len());
 
     for line in lines {
-        let mut split = line.split_whitespace();
+        let mut split = line.split_whitespace().skip(1).step_by(2);
 
-        assert_eq!(split.next(), Some("move"));
-        let num: usize = split.next().unwrap().parse().unwrap();
-
-        assert_eq!(split.next(), Some("from"));
-        let from: usize = split.next().unwrap().parse().unwrap();
-
-        assert_eq!(split.next(), Some("to"));
-        let to: usize = split.next().unwrap().parse().unwrap();
+        let num = split.next().unwrap().parse().expect("number to move");
+        let from = split.next().unwrap().parse().expect("stack to move from");
+        let to = split.next().unwrap().parse().expect("stack to move to");
 
         moves.push(Move { from, to, num });
     }
