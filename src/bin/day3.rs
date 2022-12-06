@@ -7,7 +7,7 @@ fn solve(input: &str) -> u32 {
     input.lines().map(|line| {
         let (lhalf, rhalf) = line.split_at(line.len() / 2);
 
-        let lchars: HashSet<char> = HashSet::from_iter(lhalf.chars());
+        let lchars: HashSet<_> = lhalf.chars().collect();
 
         let c = rhalf.chars().find(|c| {
             lchars.contains(c)
@@ -26,8 +26,8 @@ fn solve_part_2(input: &str) -> u32 {
             _ => panic!("the number of lines should be a multiple of 3"),
         };
 
-        let achars: HashSet<char> = HashSet::from_iter(a.chars());
-        let bchars: HashSet<char> = HashSet::from_iter(b.chars());
+        let achars: HashSet<_> = a.chars().collect();
+        let bchars: HashSet<_> = b.chars().collect();
 
         let ch = c.chars().find(|ch| {
             achars.contains(ch) && bchars.contains(ch)

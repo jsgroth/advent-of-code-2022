@@ -11,7 +11,7 @@ fn solve(input: &str, window_size: usize) -> usize {
 
     let chars: Vec<_> = line.chars().collect();
     chars.windows(window_size).enumerate().find_map(|(i, window)| {
-        let window_chars: HashSet<char> = HashSet::from_iter(window.iter().copied());
+        let window_chars: HashSet<_> = window.iter().copied().collect();
         if window_chars.len() == window_size {
             Some(i + window_size)
         } else {
