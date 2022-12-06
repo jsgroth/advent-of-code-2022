@@ -15,7 +15,7 @@ fn solve(input: &str, can_move_in_bulk: bool) -> String {
         let from_stack = &mut stacks[mov.from - 1];
         let truncated_len = from_stack.len() - mov.num;
 
-        let mut moved_chars: Vec<char> = from_stack[truncated_len..].iter().copied().collect();
+        let mut moved_chars: Vec<_> = from_stack[truncated_len..].iter().copied().collect();
         if !can_move_in_bulk {
             moved_chars.reverse();
         }
