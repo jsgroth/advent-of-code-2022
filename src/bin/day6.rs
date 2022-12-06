@@ -30,3 +30,36 @@ fn main() {
     let solution2 = solve(&input, PART_2_WINDOW_SIZE);
     println!("{solution2}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT: &str = "mjqjpqmgbljsphdztnvjfqwrcgsmlb";
+
+    #[test]
+    fn test_sample_input_part_1() {
+        assert_eq!(7, solve(SAMPLE_INPUT, PART_1_WINDOW_SIZE));
+    }
+
+    #[test]
+    fn test_sample_input_part_2() {
+        assert_eq!(19, solve(SAMPLE_INPUT, PART_2_WINDOW_SIZE));
+    }
+
+    #[test]
+    fn additional_sample_tests_part_1() {
+        assert_eq!(5, solve("bvwbjplbgvbhsrlpgdmjqwftvncz", PART_1_WINDOW_SIZE));
+        assert_eq!(6, solve("nppdvjthqldpwncqszvftbrmjlhg", PART_1_WINDOW_SIZE));
+        assert_eq!(10, solve("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", PART_1_WINDOW_SIZE));
+        assert_eq!(11, solve("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", PART_1_WINDOW_SIZE));
+    }
+
+    #[test]
+    fn additional_sample_tests_part_2() {
+        assert_eq!(23, solve("bvwbjplbgvbhsrlpgdmjqwftvncz", PART_2_WINDOW_SIZE));
+        assert_eq!(23, solve("nppdvjthqldpwncqszvftbrmjlhg", PART_2_WINDOW_SIZE));
+        assert_eq!(29, solve("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", PART_2_WINDOW_SIZE));
+        assert_eq!(26, solve("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", PART_2_WINDOW_SIZE));
+    }
+}

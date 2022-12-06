@@ -93,3 +93,23 @@ fn main() {
     let solution2 = solve_part_2(&input);
     println!("{solution2}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT: &str = "\
+A Y
+B X
+C Z";
+
+    #[test]
+    fn test_sample_input_part_1() {
+        assert_eq!(15, solve(SAMPLE_INPUT));
+    }
+
+    #[test]
+    fn test_sample_input_part_2() {
+        assert_eq!(12, solve_part_2(SAMPLE_INPUT));
+    }
+}

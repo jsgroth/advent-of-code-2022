@@ -55,3 +55,26 @@ fn main() {
     let solution2 = solve_part_2(&input);
     println!("{solution2}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT: &str = "\
+vJrwpWtwJgWrhcsFMMfFFhFp
+jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+PmmdzqPrVvPwwTWBwg
+wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+ttgJtRGJQctTZtZT
+CrZsJsPPZsGzwwsLwLmpwMDw";
+
+    #[test]
+    fn test_sample_input_part_1() {
+        assert_eq!(157, solve(SAMPLE_INPUT));
+    }
+
+    #[test]
+    fn test_sample_input_part_2() {
+        assert_eq!(70, solve_part_2(SAMPLE_INPUT));
+    }
+}

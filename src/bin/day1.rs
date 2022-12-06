@@ -35,3 +35,34 @@ fn main() {
     let solution2 = solve_part_2(&input);
     println!("{solution2}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT: &str = "\
+1000
+2000
+3000
+
+4000
+
+5000
+6000
+
+7000
+8000
+9000
+
+10000";
+
+    #[test]
+    fn test_sample_input_part_1() {
+        assert_eq!(24000, solve(SAMPLE_INPUT));
+    }
+
+    #[test]
+    fn test_sample_input_part_2() {
+        assert_eq!(45000, solve_part_2(SAMPLE_INPUT));
+    }
+}

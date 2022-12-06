@@ -58,3 +58,26 @@ fn main() {
     let solution2 = solve_part_2(&input);
     println!("{solution2}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT: &str = "\
+2-4,6-8
+2-3,4-5
+5-7,7-9
+2-8,3-7
+6-6,4-6
+2-6,4-8";
+
+    #[test]
+    fn test_sample_input_part_1() {
+        assert_eq!(2, solve(SAMPLE_INPUT));
+    }
+
+    #[test]
+    fn test_sample_input_part_2() {
+        assert_eq!(4, solve_part_2(SAMPLE_INPUT));
+    }
+}
