@@ -2,7 +2,7 @@
 //! https://adventofcode.com/2022/day/1
 
 fn solve(input: &str) -> i32 {
-    let lines: Vec<&str> = input.lines().collect();
+    let lines: Vec<_> = input.lines().collect();
     lines.split(|s| s.is_empty())
         .map(parse_and_sum)
         .max()
@@ -10,8 +10,8 @@ fn solve(input: &str) -> i32 {
 }
 
 fn solve_part_2(input: &str) -> i32 {
-    let lines: Vec<&str> = input.lines().collect();
-    let mut sums: Vec<i32> = lines.split(|s| s.is_empty())
+    let lines: Vec<_> = input.lines().collect();
+    let mut sums: Vec<_> = lines.split(|s| s.is_empty())
         .map(parse_and_sum)
         .collect();
 

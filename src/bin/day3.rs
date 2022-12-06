@@ -19,7 +19,7 @@ fn solve(input: &str) -> u32 {
 }
 
 fn solve_part_2(input: &str) -> u32 {
-    let lines: Vec<&str> = input.lines().collect();
+    let lines: Vec<_> = input.lines().collect();
     lines.chunks(3).map(|chunk| {
         let [a, b, c] = match chunk {
             [a, b, c] => [a, b, c],

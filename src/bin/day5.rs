@@ -15,7 +15,7 @@ fn solve(input: &str, can_move_in_bulk: bool) -> String {
         let from_stack = &mut stacks[mov.from - 1];
         let truncated_len = from_stack.len() - mov.num;
 
-        let mut moved_chars: Vec<char> = from_stack[truncated_len..].iter().map(|&c| c).collect();
+        let mut moved_chars: Vec<char> = from_stack[truncated_len..].iter().copied().collect();
         if !can_move_in_bulk {
             moved_chars.reverse();
         }
@@ -30,14 +30,13 @@ fn solve(input: &str, can_move_in_bulk: bool) -> String {
 }
 
 fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<Move>) {
-    let lines: Vec<&str> = input.lines().collect();
+    let mut lines = input.lines();
 
-    let empty_line_index = lines.iter().position(|line| line.is_empty())
-        .expect("there should be an empty line");
+    let stacks_lines: Vec<_> = lines.by_ref().take_while(|line| !line.is_empty()).collect();
+    let moves_lines: Vec<_> = lines.collect();
 
-    let stacks = parse_stacks(&lines[..empty_line_index]);
-
-    let moves = parse_moves(&lines[empty_line_index+1..]);
+    let stacks = parse_stacks(&stacks_lines);
+    let moves = parse_moves(&moves_lines);
 
     (stacks, moves)
 }
