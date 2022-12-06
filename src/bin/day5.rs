@@ -64,19 +64,16 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
 }
 
 fn parse_moves(lines: &[&str]) -> Vec<Move> {
-    let mut moves: Vec<Move> = Vec::with_capacity(lines.len());
-
-    for line in lines {
+    lines.iter().map(|line| {
         let mut split = line.split_whitespace().skip(1).step_by(2);
 
         let num = split.next().unwrap().parse().expect("number to move");
         let from = split.next().unwrap().parse().expect("stack to move from");
         let to = split.next().unwrap().parse().expect("stack to move to");
 
-        moves.push(Move { from, to, num });
-    }
-
-    moves
+        Move { from, to, num }
+    })
+        .collect()
 }
 
 fn main() {
