@@ -22,7 +22,7 @@ fn solve(input: &str, can_move_in_bulk: bool) -> String {
 
         from_stack.truncate(truncated_len);
 
-        stacks[mov.to - 1].append(&mut moved_chars);
+        stacks[mov.to - 1].extend(&moved_chars);
     }
 
     stacks.iter().map(|stack| stack.last().expect("no stack should be empty"))
