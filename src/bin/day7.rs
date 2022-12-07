@@ -130,7 +130,7 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
     root_dir
 }
 
-fn handle_cd_command<'a>(current_dir: Rc<RefCell<Directory<'a>>>, dir_name: &'a str) -> Rc<RefCell<Directory<'a>>> {
+fn handle_cd_command<'a>(current_dir: Rc<RefCell<Directory<'a>>>, dir_name: &str) -> Rc<RefCell<Directory<'a>>> {
     if dir_name == ".." {
         current_dir.borrow().parent_directory.as_ref().expect("should not be in root directory")
             .upgrade().expect("parent directory should not have been deallocated")
