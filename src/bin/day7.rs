@@ -121,7 +121,7 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
             }
             "ls" => {
                 let ls_output = collect_ls_output(&mut lines);
-                handle_ls_command(&current_dir, &ls_output);
+                handle_ls_command(&mut current_dir, &ls_output);
             }
             _ => panic!("only supported commands are cd and ls; command={command}")
         }
@@ -157,7 +157,7 @@ where
     result
 }
 
-fn handle_ls_command<'a>(current_dir: &Rc<RefCell<Directory<'a>>>, ls_output: &[&'a str]) {
+fn handle_ls_command<'a>(current_dir: &mut Rc<RefCell<Directory<'a>>>, ls_output: &[&'a str]) {
     for line in ls_output {
         let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
         if size == "dir" {
