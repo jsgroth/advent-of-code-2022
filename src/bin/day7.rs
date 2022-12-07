@@ -145,18 +145,13 @@ where
 {
     let mut result: Vec<&str> = Vec::new();
 
-    loop {
-        match iter.peek() {
-            Some(line) => {
-                if line.chars().next() == Some('$') {
-                    break;
-                }
-
-                result.push(*line);
-                iter.next();
-            }
-            None => break,
+    while let Some(line) = iter.peek() {
+        if line.chars().next() == Some('$') {
+            break;
         }
+
+        result.push(*line);
+        iter.next();
     }
 
     result
