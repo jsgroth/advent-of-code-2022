@@ -25,8 +25,8 @@ struct Directory<'a> {
 }
 
 impl<'a> Directory<'a> {
-    fn new(name: &'a str, parent_directory: Option<Rc<RefCell<Directory<'a>>>>) -> Directory<'a> {
-        let parent_directory = parent_directory.map(|d| Rc::downgrade(&d));
+    fn new(name: &'a str, parent_directory: Option<&Rc<RefCell<Directory<'a>>>>) -> Directory<'a> {
+        let parent_directory = parent_directory.map(|d| Rc::downgrade(d));
         Directory {
             name,
             files: Vec::new(),
@@ -161,7 +161,7 @@ fn handle_ls_command<'a>(current_dir: &Rc<RefCell<Directory<'a>>>, ls_output: &[
     for line in ls_output {
         let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
         if size == "dir" {
-            let directory = Directory::new(name, Some(Rc::clone(current_dir)));
+            let directory = Directory::new(name, Some(current_dir));
             if let Some(_) = current_dir.borrow_mut().add_subdirectory(directory) {
                 panic!("directory {} already exists in current directory {}", name, current_dir.borrow().name);
             }
