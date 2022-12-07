@@ -117,11 +117,11 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
         match command {
             "cd" => {
                 let dir_name = split.next().expect("should be a directory name after cd command");
-                current_dir = handle_cd_command(Rc::clone(&current_dir), dir_name);
+                current_dir = handle_cd_command(&current_dir, dir_name);
             }
             "ls" => {
                 let ls_output = collect_ls_output(&mut lines);
-                handle_ls_command(Rc::clone(&current_dir), &ls_output);
+                handle_ls_command(&current_dir, &ls_output);
             }
             _ => panic!("only supported commands are cd and ls; command={command}")
         }
@@ -130,7 +130,7 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
     root_dir
 }
 
-fn handle_cd_command<'a>(current_dir: Rc<RefCell<Directory<'a>>>, dir_name: &str) -> Rc<RefCell<Directory<'a>>> {
+fn handle_cd_command<'a>(current_dir: &Rc<RefCell<Directory<'a>>>, dir_name: &str) -> Rc<RefCell<Directory<'a>>> {
     if dir_name == ".." {
         current_dir.borrow().parent_directory.as_ref().expect("should not be in root directory")
             .upgrade().expect("parent directory should not have been deallocated")
@@ -157,11 +157,11 @@ where
     result
 }
 
-fn handle_ls_command<'a>(current_dir: Rc<RefCell<Directory<'a>>>, ls_output: &[&'a str]) {
+fn handle_ls_command<'a>(current_dir: &Rc<RefCell<Directory<'a>>>, ls_output: &[&'a str]) {
     for line in ls_output {
         let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
         if size == "dir" {
-            let directory = Directory::new(name, Some(Rc::clone(&current_dir)));
+            let directory = Directory::new(name, Some(Rc::clone(current_dir)));
             if let Some(_) = current_dir.borrow_mut().add_subdirectory(directory) {
                 panic!("directory {} already exists in current directory {}", name, current_dir.borrow().name);
             }
