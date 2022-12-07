@@ -6,26 +6,26 @@ use std::collections::HashMap;
 use std::iter::Peekable;
 use std::rc::{Rc, Weak};
 
-struct File<'a> {
-    _name: &'a str,
+struct File {
+    _name: String,
     size: u32,
 }
 
-impl<'a> File<'a> {
-    fn new(name: &str, size: u32) -> File {
+impl File {
+    fn new(name: String, size: u32) -> File {
         File { _name: name, size }
     }
 }
 
-struct Directory<'a> {
-    name: &'a str,
-    files: Vec<File<'a>>,
-    subdirectories: HashMap<&'a str, Rc<RefCell<Directory<'a>>>>,
-    parent_directory: Option<Weak<RefCell<Directory<'a>>>>,
+struct Directory {
+    name: String,
+    files: Vec<File>,
+    subdirectories: HashMap<String, Rc<RefCell<Directory>>>,
+    parent_directory: Option<Weak<RefCell<Directory>>>,
 }
 
-impl<'a> Directory<'a> {
-    fn new(name: &'a str, parent_directory: Option<&Rc<RefCell<Directory<'a>>>>) -> Directory<'a> {
+impl Directory {
+    fn new(name: String, parent_directory: Option<&Rc<RefCell<Directory>>>) -> Directory {
         let parent_directory = parent_directory.map(|d| Rc::downgrade(d));
         Directory {
             name,
@@ -35,15 +35,15 @@ impl<'a> Directory<'a> {
         }
     }
 
-    fn add_file(&mut self, file: File<'a>) {
+    fn add_file(&mut self, file: File) {
         self.files.push(file);
     }
 
-    fn add_subdirectory(&mut self, subdirectory: Directory<'a>) -> Option<Rc<RefCell<Directory<'a>>>> {
-        self.subdirectories.insert(subdirectory.name, Rc::new(RefCell::new(subdirectory)))
+    fn add_subdirectory(&mut self, subdirectory: Directory) -> Option<Rc<RefCell<Directory>>> {
+        self.subdirectories.insert(subdirectory.name.clone(), Rc::new(RefCell::new(subdirectory)))
     }
 
-    fn get_subdirectory(&self, name: &str) -> Option<Rc<RefCell<Directory<'a>>>> {
+    fn get_subdirectory(&self, name: &str) -> Option<Rc<RefCell<Directory>>> {
         match self.subdirectories.get(name) {
             Some(dir) => Some(Rc::clone(dir)),
             None => None,
@@ -105,7 +105,7 @@ fn solve(input: &str) -> (u32, u32) {
 fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
     assert_eq!(input.lines().next(), Some("$ cd /"));
 
-    let root_dir = Rc::new(RefCell::new(Directory::new("/", None)));
+    let root_dir = Rc::new(RefCell::new(Directory::new(String::from("/"), None)));
 
     let mut current_dir = Rc::clone(&root_dir);
     let mut lines = input.lines().skip(1).peekable();
@@ -130,7 +130,7 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
     root_dir
 }
 
-fn handle_cd_command<'a>(current_dir: &Rc<RefCell<Directory<'a>>>, dir_name: &str) -> Rc<RefCell<Directory<'a>>> {
+fn handle_cd_command(current_dir: &Rc<RefCell<Directory>>, dir_name: &str) -> Rc<RefCell<Directory>> {
     if dir_name == ".." {
         current_dir.borrow().parent_directory.as_ref().expect("should not be in root directory")
             .upgrade().expect("parent directory should not have been deallocated")
@@ -156,17 +156,17 @@ where
     result
 }
 
-fn handle_ls_command<'a>(current_dir: &mut Rc<RefCell<Directory<'a>>>, ls_output: &[&'a str]) {
+fn handle_ls_command(current_dir: &mut Rc<RefCell<Directory>>, ls_output: &[&str]) {
     for line in ls_output {
         let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
         if size == "dir" {
-            let directory = Directory::new(name, Some(current_dir));
+            let directory = Directory::new(String::from(name), Some(current_dir));
             if let Some(_) = current_dir.borrow_mut().add_subdirectory(directory) {
                 panic!("directory {} already exists in current directory {}", name, current_dir.borrow().name);
             }
         } else {
             let size: u32 = size.parse().expect("size should be an integer");
-            current_dir.borrow_mut().add_file(File::new(name, size));
+            current_dir.borrow_mut().add_file(File::new(String::from(name), size));
         }
     }
 }
