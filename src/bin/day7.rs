@@ -11,17 +11,17 @@ struct File<'a> {
     size: u32,
 }
 
+impl<'a> File<'a> {
+    fn new(name: &str, size: u32) -> File {
+        File { _name: name, size }
+    }
+}
+
 struct Directory<'a> {
     name: &'a str,
     files: Vec<File<'a>>,
     subdirectories: HashMap<&'a str, Rc<RefCell<Directory<'a>>>>,
     parent_directory: Option<Weak<RefCell<Directory<'a>>>>,
-}
-
-impl<'a> File<'a> {
-    fn new(name: &str, size: u32) -> File {
-        File { _name: name, size }
-    }
 }
 
 impl<'a> Directory<'a> {
