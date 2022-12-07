@@ -150,8 +150,7 @@ where
             break;
         }
 
-        result.push(*line);
-        iter.next();
+        result.push(iter.next().unwrap());
     }
 
     result
