@@ -80,7 +80,7 @@ const PART_2_TARGET_FREE_SPACE: u32 = 30000000;
 fn solve(input: &str) -> (u32, u32) {
     let root_dir = parse_input(input);
 
-    let (root_dir_total_size, solution1) = root_dir.total_size_traverse(0, |acc, total_size| {
+    let (root_dir_total_size, solution1) = root_dir.borrow().total_size_traverse(0, |acc, total_size| {
         if total_size <= PART_1_MAX_DIRECTORY_SIZE {
             acc + total_size
         } else {
@@ -89,7 +89,7 @@ fn solve(input: &str) -> (u32, u32) {
     });
 
     let target_space = PART_2_DISK_SIZE - PART_2_TARGET_FREE_SPACE;
-    let (_, solution2) = root_dir.total_size_traverse(u32::MAX, |acc, total_size| {
+    let (_, solution2) = root_dir.borrow().total_size_traverse(u32::MAX, |acc, total_size| {
         let new_space = root_dir_total_size - total_size;
         if new_space <= target_space && total_size < acc {
             total_size
@@ -101,7 +101,7 @@ fn solve(input: &str) -> (u32, u32) {
     (solution1, solution2)
 }
 
-fn parse_input(input: &str) -> Directory {
+fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
     assert_eq!(input.lines().next(), Some("$ cd /"));
 
     let root_dir = Rc::new(RefCell::new(Directory::new("/", None)));
@@ -131,10 +131,7 @@ fn parse_input(input: &str) -> Directory {
         }
     }
 
-    match Rc::try_unwrap(root_dir) {
-        Ok(d) => d.into_inner(),
-        Err(rc) => panic!("unable to unwrap root dir Rc, strong count is {}", Rc::strong_count(&rc)),
-    }
+    root_dir
 }
 
 fn handle_cd_command<'a>(current_dir: Rc<RefCell<Directory<'a>>>, dir_name: &'a str) -> Rc<RefCell<Directory<'a>>> {
