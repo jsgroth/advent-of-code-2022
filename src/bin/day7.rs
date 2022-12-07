@@ -13,8 +13,8 @@ struct File<'a> {
 
 struct Directory<'a> {
     name: &'a str,
-    files: RefCell<Vec<File<'a>>>,
-    subdirectories: RefCell<HashMap<&'a str, Rc<RefCell<Directory<'a>>>>>,
+    files: Vec<File<'a>>,
+    subdirectories: HashMap<&'a str, Rc<RefCell<Directory<'a>>>>,
     parent_directory: Option<Weak<RefCell<Directory<'a>>>>,
 }
 
@@ -29,40 +29,41 @@ impl<'a> Directory<'a> {
         let parent_directory = parent_directory.map(|d| Rc::downgrade(&d));
         Directory {
             name,
-            files: RefCell::new(Vec::new()),
-            subdirectories: RefCell::new(HashMap::new()),
+            files: Vec::new(),
+            subdirectories: HashMap::new(),
             parent_directory,
         }
     }
 
     fn add_file(&mut self, file: File<'a>) {
-        self.files.borrow_mut().push(file);
+        self.files.push(file);
     }
 
     fn add_subdirectory(&mut self, subdirectory: Directory<'a>) -> Option<Rc<RefCell<Directory<'a>>>> {
-        self.subdirectories.borrow_mut().insert(subdirectory.name, Rc::new(RefCell::new(subdirectory)))
+        self.subdirectories.insert(subdirectory.name, Rc::new(RefCell::new(subdirectory)))
     }
 
     fn get_subdirectory(&self, name: &str) -> Option<Rc<RefCell<Directory<'a>>>> {
-        match self.subdirectories.borrow().get(name) {
+        match self.subdirectories.get(name) {
             Some(dir) => Some(Rc::clone(dir)),
             None => None,
         }
     }
 
+    // Fold over every node in the directory tree and return (total size, fold result)
     fn total_size_traverse<T, F>(&self, initial_state: T, f: F) -> (u32, T)
     where
         F: Copy + Fn(T, u32) -> T,
     {
-        let files_size: u32 = self.files.borrow().iter().map(|file| file.size).sum();
+        let files_size: u32 = self.files.iter().map(|file| file.size).sum();
 
         let mut directories_size = 0;
         let mut state = initial_state;
-        for d in self.subdirectories.borrow().values() {
+        for d in self.subdirectories.values() {
             let (total_size, sub_dir_state) = d.borrow().total_size_traverse(state, f);
 
-            state = sub_dir_state;
             directories_size += total_size;
+            state = sub_dir_state;
         }
 
         let total_size = files_size + directories_size;
