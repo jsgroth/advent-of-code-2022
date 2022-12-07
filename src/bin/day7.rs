@@ -109,26 +109,21 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
 
     let mut current_dir = Rc::clone(&root_dir);
     let mut lines = input.lines().skip(1).peekable();
-    loop {
-        match lines.next() {
-            Some(line) => {
-                assert_eq!(line.chars().next(), Some('$'));
+    while let Some(line) = lines.next() {
+        assert_eq!(line.chars().next(), Some('$'));
 
-                let mut split = line.split_whitespace().skip(1);
-                let command = split.next().expect("expecting cd or ls command after $");
-                match command {
-                    "cd" => {
-                        let dir_name = split.next().expect("should be a directory name after cd command");
-                        current_dir = handle_cd_command(Rc::clone(&current_dir), dir_name);
-                    }
-                    "ls" => {
-                        let ls_output = collect_ls_output(&mut lines);
-                        handle_ls_command(Rc::clone(&current_dir), &ls_output);
-                    }
-                    _ => panic!("only supported commands are cd and ls; command={command}")
-                }
+        let mut split = line.split_whitespace().skip(1);
+        let command = split.next().expect("expecting cd or ls command after $");
+        match command {
+            "cd" => {
+                let dir_name = split.next().expect("should be a directory name after cd command");
+                current_dir = handle_cd_command(Rc::clone(&current_dir), dir_name);
             }
-            None => break,
+            "ls" => {
+                let ls_output = collect_ls_output(&mut lines);
+                handle_ls_command(Rc::clone(&current_dir), &ls_output);
+            }
+            _ => panic!("only supported commands are cd and ls; command={command}")
         }
     }
 
