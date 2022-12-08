@@ -12,27 +12,25 @@ fn solve(input: &str) -> usize {
 
     let mut visible_tree_positions = empty_matrix(rows, cols, false);
 
-    for (i, row) in grid.iter().enumerate() {
-        let row_right = find_visible_positions(row.iter().copied());
+    for i in 0..rows {
+        let row_right = find_visible_positions(grid[i].iter().copied());
         for j in row_right.iter().copied() {
             visible_tree_positions[i][j] = true;
         }
 
-        let row_left = find_visible_positions(row.iter().copied().rev());
+        let row_left = find_visible_positions(grid[i].iter().copied().rev());
         for j in row_left.iter().copied() {
             visible_tree_positions[i][cols - j - 1] = true;
         }
     }
 
-    let transposed_grid = transpose(&grid);
-
-    for (j, col) in transposed_grid.iter().enumerate() {
-        let col_down = find_visible_positions(col.iter().copied());
+    for j in 0..cols {
+        let col_down = find_visible_positions(col_iter(&grid, j));
         for i in col_down.iter().copied() {
             visible_tree_positions[i][j] = true;
         }
 
-        let col_up = find_visible_positions(col.iter().copied().rev());
+        let col_up = find_visible_positions(col_iter(&grid, j).rev());
         for i in col_up.iter().copied() {
             visible_tree_positions[rows - i - 1][j] = true;
         }
@@ -63,24 +61,11 @@ fn parse_input(input: &str) -> Vec<Vec<u8>> {
     }).collect()
 }
 
-fn transpose(grid: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    if grid.is_empty() {
-        return Vec::new();
-    }
-
-    let num_rows = grid.len();
-    let num_cols = grid[0].len();
-
-    let mut transposed = Vec::with_capacity(num_cols);
-    for j in 0..num_cols {
-        let mut row = Vec::with_capacity(num_rows);
-        for i in 0..num_rows {
-            row.push(grid[i][j]);
-        }
-        transposed.push(row);
-    }
-
-    transposed
+fn col_iter<'a, T>(grid: &'a Vec<Vec<T>>, j: usize) -> impl Iterator<Item = T> + DoubleEndedIterator + 'a
+where T: Copy
+{
+    let rows = grid.len();
+    (0..rows).map(move |i| (i, j)).map(|(i, j)| grid[i][j])
 }
 
 fn empty_matrix<T: Copy>(rows: usize, cols: usize, default_value: T) -> Vec<Vec<T>> {
