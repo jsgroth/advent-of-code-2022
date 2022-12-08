@@ -46,9 +46,9 @@ fn solve_part_2(input: &str) -> usize {
     let cols = grid[0].len();
 
     (0..rows).flat_map(|i| {
-        (0..cols).map(move |j| (i, j))
+        let grid_ref = &grid;
+        (0..cols).map(move |j| compute_scenic_score(grid_ref, i, j))
     })
-        .map(|(i, j)| compute_scenic_score(&grid, i, j))
         .max()
         .unwrap()
 }
