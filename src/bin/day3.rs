@@ -66,7 +66,8 @@ jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
 PmmdzqPrVvPwwTWBwg
 wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
 ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw";
+CrZsJsPPZsGzwwsLwLmpwMDw
+";
 
     #[test]
     fn test_sample_input_part_1() {

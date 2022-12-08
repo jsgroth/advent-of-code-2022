@@ -54,7 +54,8 @@ mod tests {
 8000
 9000
 
-10000";
+10000
+";
 
     #[test]
     fn test_sample_input_part_1() {
