@@ -13,8 +13,7 @@ struct Directory {
 }
 
 impl Directory {
-    fn new(parent_directory: Option<&Rc<RefCell<Directory>>>) -> Directory {
-        let parent_directory = parent_directory.map(|d| Rc::downgrade(d));
+    fn new(parent_directory: Option<Weak<RefCell<Directory>>>) -> Directory {
         Directory {
             file_sizes: Vec::new(),
             subdirectories: HashMap::new(),
@@ -147,7 +146,7 @@ fn handle_ls_command(current_dir: &mut Rc<RefCell<Directory>>, ls_output: &[&str
     for line in ls_output {
         let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
         if size == "dir" {
-            let directory = Directory::new(Some(current_dir));
+            let directory = Directory::new(Some(Rc::downgrade(current_dir)));
             if let Some(_) = current_dir.borrow_mut().add_subdirectory(String::from(name), directory) {
                 panic!("directory {} already exists in current directory", name);
             }
