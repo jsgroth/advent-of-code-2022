@@ -65,7 +65,7 @@ fn col_iter<'a, T>(grid: &'a Vec<Vec<T>>, j: usize) -> impl Iterator<Item = T> +
 where T: Copy
 {
     let rows = grid.len();
-    (0..rows).map(move |i| (i, j)).map(|(i, j)| grid[i][j])
+    (0..rows).map(move |i| grid[i][j])
 }
 
 fn empty_matrix<T: Copy>(rows: usize, cols: usize, default_value: T) -> Vec<Vec<T>> {
