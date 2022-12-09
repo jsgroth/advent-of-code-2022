@@ -45,7 +45,7 @@ fn solve(input: &str) -> usize {
             head.y += dy;
 
             if !head.is_adjacent_to(&tail) {
-                move_tail(&head, &mut tail);
+                tail = move_tail(&head, &tail);
                 tail_visited.insert(tail.clone());
             }
         }
@@ -75,7 +75,7 @@ fn solve_part_2(input: &str) -> usize {
 
             for i in 1..knots.len() {
                 if !knots[i - 1].is_adjacent_to(&knots[i]) {
-                    move_tail(&knots[i - 1].clone(), &mut knots[i]);
+                    knots[i] = move_tail(&knots[i - 1], &knots[i]);
                 }
             }
 
@@ -96,9 +96,10 @@ fn parse_direction(direction: &str) -> (i32, i32) {
     }
 }
 
-fn move_tail(head: &Point, tail: &mut Point) {
-    tail.x += (head.x - tail.x).signum();
-    tail.y += (head.y - tail.y).signum();
+fn move_tail(head: &Point, tail: &Point) -> Point {
+    let new_x = tail.x + (head.x - tail.x).signum();
+    let new_y = tail.y + (head.y - tail.y).signum();
+    Point::new(new_x, new_y)
 }
 
 fn main() {
