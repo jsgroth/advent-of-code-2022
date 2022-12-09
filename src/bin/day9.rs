@@ -29,10 +29,7 @@ const PART_1_ROPE_LEN: usize = 2;
 const PART_2_ROPE_LEN: usize = 10;
 
 fn solve(input: &str, rope_len: usize) -> usize {
-    let mut knots: Vec<Point> = Vec::with_capacity(rope_len);
-    for _ in 0..rope_len {
-        knots.push(Point::new(0, 0));
-    }
+    let mut knots = vec![Point::new(0, 0); rope_len];
 
     let mut tail_visited: HashSet<Point> = HashSet::new();
     tail_visited.insert(Point::new(0, 0));

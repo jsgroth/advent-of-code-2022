@@ -47,11 +47,8 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
         .and_then(|last_char| last_char.parse().ok())
         .expect("line before empty line should end in a number");
 
-    let mut stacks: Vec<Vec<char>> = Vec::with_capacity(num_stacks);
-    for _ in 0..num_stacks {
-        stacks.push(Vec::with_capacity(lines.len() - 1));
-    }
-
+    let mut stacks: Vec<Vec<char>> = vec![Vec::new(); num_stacks];
+    
     for line in lines[..lines.len()-1].iter().rev() {
         for (i, c) in line.chars().skip(1).step_by(4).enumerate() {
             if c != ' ' {
