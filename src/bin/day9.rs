@@ -1,7 +1,7 @@
 //! Day 9: Rope Bridge
 //! https://adventofcode.com/2022/day/9
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Point {
@@ -25,38 +25,12 @@ impl Clone for Point {
     }
 }
 
+const PART_1_ROPE_LEN: usize = 2;
 const PART_2_ROPE_LEN: usize = 10;
 
-fn solve(input: &str) -> usize {
-    let mut head = Point::new(0, 0);
-    let mut tail = Point::new(0, 0);
-
-    let mut tail_visited: HashSet<Point> = HashSet::new();
-    tail_visited.insert(Point::new(0, 0));
-
-    for line in input.lines() {
-        let (direction, distance) = line.split_once(' ').expect("every line should have a space");
-        let distance: i32 = distance.parse().expect("distance should be an integer");
-
-        let (dx, dy) = parse_direction(direction);
-
-        for _ in 0..distance {
-            head.x += dx;
-            head.y += dy;
-
-            if !head.is_adjacent_to(&tail) {
-                tail = move_tail(&head, &tail);
-                tail_visited.insert(tail.clone());
-            }
-        }
-    }
-
-    tail_visited.len()
-}
-
-fn solve_part_2(input: &str) -> usize {
-    let mut knots: Vec<Point> = Vec::with_capacity(PART_2_ROPE_LEN);
-    for _ in 0..PART_2_ROPE_LEN {
+fn solve(input: &str, rope_len: usize) -> usize {
+    let mut knots: Vec<Point> = Vec::with_capacity(rope_len);
+    for _ in 0..rope_len {
         knots.push(Point::new(0, 0));
     }
 
@@ -105,10 +79,10 @@ fn move_tail(head: &Point, tail: &Point) -> Point {
 fn main() {
     let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
-    let solution1 = solve(&input);
+    let solution1 = solve(&input, PART_1_ROPE_LEN);
     println!("{solution1}");
 
-    let solution2 = solve_part_2(&input);
+    let solution2 = solve(&input, PART_2_ROPE_LEN);
     println!("{solution2}");
 }
 
@@ -140,16 +114,16 @@ U 20
 
     #[test]
     fn test_sample_input_part_1() {
-        assert_eq!(13, solve(SAMPLE_INPUT));
+        assert_eq!(13, solve(SAMPLE_INPUT, PART_1_ROPE_LEN));
     }
 
     #[test]
     fn test_sample_input_part_2() {
-        assert_eq!(1, solve_part_2(SAMPLE_INPUT));
+        assert_eq!(1, solve(SAMPLE_INPUT, PART_2_ROPE_LEN));
     }
 
     #[test]
     fn test_larger_sample_input_part_2() {
-        assert_eq!(36, solve_part_2(LARGER_SAMPLE_INPUT));
+        assert_eq!(36, solve(LARGER_SAMPLE_INPUT, PART_2_ROPE_LEN));
     }
 }
