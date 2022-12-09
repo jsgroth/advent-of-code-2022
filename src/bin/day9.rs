@@ -97,17 +97,8 @@ fn parse_direction(direction: &str) -> (i32, i32) {
 }
 
 fn move_tail(head: &Point, tail: &mut Point) {
-    let dx = head.x - tail.x;
-    let dy = head.y - tail.y;
-
-    if dx != 0 && dy != 0 {
-        tail.x += dx.signum();
-        tail.y += dy.signum();
-    } else if dx != 0 {
-        tail.x += dx.signum();
-    } else {
-        tail.y += dy.signum();
-    }
+    tail.x += (head.x - tail.x).signum();
+    tail.y += (head.y - tail.y).signum();
 }
 
 fn main() {
