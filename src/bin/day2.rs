@@ -98,11 +98,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const SAMPLE_INPUT: &str = "\
-A Y
-B X
-C Z
-";
+    const SAMPLE_INPUT: &str = include_str!("sample_input/sample2.txt");
 
     #[test]
     fn test_sample_input_part_1() {

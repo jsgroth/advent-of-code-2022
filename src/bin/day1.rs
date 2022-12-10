@@ -40,22 +40,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const SAMPLE_INPUT: &str = "\
-1000
-2000
-3000
-
-4000
-
-5000
-6000
-
-7000
-8000
-9000
-
-10000
-";
+    const SAMPLE_INPUT: &str = include_str!("sample_input/sample1.txt");
 
     #[test]
     fn test_sample_input_part_1() {

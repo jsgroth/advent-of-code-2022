@@ -152,13 +152,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const SAMPLE_INPUT: &str = "\
-30373
-25512
-65332
-33549
-35390
-";
+    const SAMPLE_INPUT: &str = include_str!("sample_input/sample8.txt");
 
     #[test]
     fn test_sample_input_part_1() {

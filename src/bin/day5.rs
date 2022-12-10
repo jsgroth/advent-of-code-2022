@@ -87,17 +87,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const SAMPLE_INPUT: &str = concat!(
-        "    [D]    \n",
-        "[N] [C]    \n",
-        "[Z] [M] [P]\n",
-        " 1   2   3 \n",
-        "\n",
-        "move 1 from 2 to 1\n",
-        "move 3 from 1 to 3\n",
-        "move 2 from 2 to 1\n",
-        "move 1 from 1 to 2\n",
-    );
+    const SAMPLE_INPUT: &str = include_str!("sample_input/sample5.txt");
 
     #[test]
     fn test_sample_input_part_1() {
