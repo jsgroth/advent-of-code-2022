@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Point {
     x: i32,
     y: i32,
@@ -16,12 +16,6 @@ impl Point {
 
     fn is_adjacent_to(&self, other: &Self) -> bool {
         (self.x - other.x).abs() <= 1 && (self.y - other.y).abs() <= 1
-    }
-}
-
-impl Clone for Point {
-    fn clone(&self) -> Self {
-        Self { x: self.x, y: self.y }
     }
 }
 
