@@ -19,14 +19,16 @@ impl Instruction {
 }
 
 const INITIAL_REGISTER_VALUE: i32 = 1;
+const START_COUNTING_CYCLE: usize = 20;
+const COUNTING_CYCLE_STEP: usize = 40;
 
 const HORIZONTAL_RESOLUTION: usize = 40;
 
 fn solve(input: &str) -> i32 {
     generate_values_iter(input)
         .enumerate()
-        .skip(19)
-        .step_by(40)
+        .skip(START_COUNTING_CYCLE - 1)
+        .step_by(COUNTING_CYCLE_STEP)
         .fold(0, |acc, (i, x)| {
             acc + x * ((i as i32) + 1)
         })
