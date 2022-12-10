@@ -1,8 +1,6 @@
 //! Day 10: Cathode-Ray Tube
 //! https://adventofcode.com/2022/day/10
 
-use std::fmt::Write;
-
 enum Instruction {
     Noop,
     Addx(i32),
@@ -43,14 +41,14 @@ fn solve_part_2(input: &str) -> String {
     for (i, x) in generate_values_iter(input).enumerate() {
         let j = i % HORIZONTAL_RESOLUTION;
         if j == 0 {
-            writeln!(result).unwrap();
+            result.push('\n');
         }
 
         if ((j as i32) - x).abs() <= 1 {
-            write!(result, "#").unwrap();
+            result.push('#');
         } else {
             // Print space instead of . because it makes the output more readable
-            write!(result, " ").unwrap();
+            result.push(' ');
         }
     }
 
