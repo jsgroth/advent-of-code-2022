@@ -8,12 +8,14 @@ enum Instruction {
 
 impl Instruction {
     fn from_line(line: &str) -> Self {
-        if line == "noop" {
-            Self::Noop
-        } else {
-            let (_, addx_operand) = line.split_once(' ').expect("every addx line should have an operand");
-            let addx_operand: i32 = addx_operand.parse().expect("every addx operand should be an integer");
-            Self::Addx(addx_operand)
+        let split: Vec<_> = line.split(' ').collect();
+        match split.as_slice() {
+            ["noop"] => Self::Noop,
+            ["addx", operand] => {
+                let operand: i32 = operand.parse().expect("addx operand should be an integer");
+                Self::Addx(operand)
+            }
+            _ => panic!("op should be noop or addx"),
         }
     }
 }
