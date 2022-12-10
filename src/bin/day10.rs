@@ -21,6 +21,7 @@ impl Instruction {
 }
 
 const INITIAL_REGISTER_VALUE: i32 = 1;
+
 const START_COUNTING_CYCLE: usize = 20;
 const COUNTING_CYCLE_STEP: usize = 40;
 
@@ -38,11 +39,11 @@ fn solve(input: &str) -> i32 {
 }
 
 fn solve_part_2(input: &str) -> String {
-    let mut result = String::with_capacity(VERTICAL_RESOLUTION * (HORIZONTAL_RESOLUTION + 1) + 1);
+    let mut result = String::with_capacity(VERTICAL_RESOLUTION * (HORIZONTAL_RESOLUTION + 1));
 
     for (i, x) in generate_values_iter(input).enumerate() {
         let j = i % HORIZONTAL_RESOLUTION;
-        if j == 0 {
+        if j == 0 && i > 0 {
             result.push('\n');
         }
 
