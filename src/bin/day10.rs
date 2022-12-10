@@ -1,6 +1,8 @@
 //! Day 10: Cathode-Ray Tube
 //! https://adventofcode.com/2022/day/10
 
+use std::fmt::Write;
+
 enum Instruction {
     Noop,
     Addx(i32),
@@ -23,6 +25,7 @@ const START_COUNTING_CYCLE: usize = 20;
 const COUNTING_CYCLE_STEP: usize = 40;
 
 const HORIZONTAL_RESOLUTION: usize = 40;
+const VERTICAL_RESOLUTION: usize = 6;
 
 fn solve(input: &str) -> i32 {
     generate_values_iter(input)
@@ -34,21 +37,24 @@ fn solve(input: &str) -> i32 {
         })
 }
 
-fn solve_part_2(input: &str) {
+fn solve_part_2(input: &str) -> String {
+    let mut result = String::with_capacity(VERTICAL_RESOLUTION * (HORIZONTAL_RESOLUTION + 1) + 1);
+
     for (i, x) in generate_values_iter(input).enumerate() {
         let j = i % HORIZONTAL_RESOLUTION;
         if j == 0 {
-            println!();
+            writeln!(result).unwrap();
         }
 
         if ((j as i32) - x).abs() <= 1 {
-            print!("#");
+            write!(result, "#").unwrap();
         } else {
             // Print space instead of . because it makes the output more readable
-            print!(" ");
+            write!(result, " ").unwrap();
         }
     }
-    println!();
+
+    result
 }
 
 // Returns an iterator over the value of X at each cycle
@@ -74,7 +80,8 @@ fn main() {
     let solution1 = solve(&input);
     println!("{solution1}");
 
-    solve_part_2(&input);
+    let solution2 = solve_part_2(&input);
+    println!("{solution2}");
 }
 
 #[cfg(test)]
