@@ -108,14 +108,9 @@ fn solve_part_2(input: &str) -> u64 {
 
 fn parse_input(input: &str) -> Vec<Monkey> {
     let lines: Vec<_> = input.lines().collect();
-
-    let mut monkeys: Vec<Monkey> = Vec::new();
-    for monkey_lines in lines.split(|line| line.is_empty()) {
-        let monkey = parse_monkey(monkey_lines);
-        monkeys.push(monkey);
-    }
-
-    monkeys
+    lines.split(String::is_empty)
+        .map(parse_monkey)
+        .collect()
 }
 
 fn parse_monkey(lines: &[&str]) -> Monkey {
