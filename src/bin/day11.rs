@@ -108,7 +108,7 @@ fn solve_part_2(input: &str) -> u64 {
 
 fn parse_input(input: &str) -> Vec<Monkey> {
     let lines: Vec<_> = input.lines().collect();
-    lines.split(String::is_empty)
+    lines.split(|s| s.is_empty())
         .map(parse_monkey)
         .collect()
 }
