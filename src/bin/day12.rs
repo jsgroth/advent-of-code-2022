@@ -1,8 +1,8 @@
 //! Day 12: Hill Climbing Algorithm
 //! https://adventofcode.com/2022/day/12
 
-use std::cmp::{min, Ordering};
-use std::collections::BinaryHeap;
+use std::cmp;
+use std::collections::VecDeque;
 
 struct Input {
     grid: Vec<Vec<u8>>,
@@ -10,7 +10,6 @@ struct Input {
     end: (usize, usize),
 }
 
-#[derive(Debug, PartialEq, Eq)]
 struct Path {
     distance: usize,
     position: (usize, usize),
@@ -22,40 +21,24 @@ impl Path {
     }
 }
 
-impl PartialOrd<Self> for Path {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        // Reverse comparison order so heap will be a min heap
-        Some(other.distance.cmp(&self.distance))
-    }
-}
-
-impl Ord for Path {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
 fn solve(grid: &Vec<Vec<u8>>, start: (usize, usize), end: (usize, usize)) -> Option<usize> {
-    let mut heap: BinaryHeap<Path> = BinaryHeap::new();
-    heap.push(Path::new(0, start));
-
     let rows = grid.len();
     let cols = grid[0].len();
 
-    let mut min_distances = vec![vec![usize::MAX; cols]; rows];
+    let mut visited = vec![vec![false; cols]; rows];
+    visited[start.0][start.1] = true;
 
-    while !heap.is_empty() {
-        let Path { distance, position } = heap.pop().unwrap();
+    let mut queue: VecDeque<Path> = VecDeque::new();
+    queue.push_back(Path::new(0, start));
+
+    while !queue.is_empty() {
+        let Path { distance, position } = queue.pop_front().unwrap();
 
         if position == end {
             return Some(distance);
         }
 
         let (i, j) = position;
-        if distance > min_distances[i][j] {
-            continue;
-        }
-
         for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
             let ii = (i as i32) + dx;
             let jj = (j as i32) + dy;
@@ -69,9 +52,9 @@ fn solve(grid: &Vec<Vec<u8>>, start: (usize, usize), end: (usize, usize)) -> Opt
                 continue;
             }
 
-            if grid[ii][jj] <= grid[i][j] + 1 && min_distances[ii][jj] > distance + 1 {
-                min_distances[ii][jj] = distance + 1;
-                heap.push(Path::new(distance + 1, (ii, jj)));
+            if grid[ii][jj] <= grid[i][j] + 1 && !visited[ii][jj] {
+                visited[ii][jj] = true;
+                queue.push_back(Path::new(distance + 1, (ii, jj)));
             }
         }
     }
@@ -93,7 +76,7 @@ fn solve_part_2(input: &str) -> usize {
         for (j, &height) in row.iter().enumerate() {
             if height == 0 {
                 if let Some(distance) = solve(&grid, (i, j), end) {
-                    min_distance = min(min_distance, distance)
+                    min_distance = cmp::min(min_distance, distance)
                 }
             }
         }
