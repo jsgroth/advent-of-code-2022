@@ -77,17 +77,17 @@ fn solve(input: &str, rounds: usize, divide_by_three: bool) -> u64 {
                 let mut item = monkeys[i].operation.apply(item);
                 if divide_by_three {
                     item /= 3;
+                } else {
+                    // Why this works:
+                    // For any non-negative integers a and b and any positive integer n:
+                    //   (a + b) mod n == ((a mod n) + b) mod n
+                    //   (a * b) mod n == ((a mod n) * b) mod n
+                    // For any non-negative integer a and any positive integers n and k:
+                    //   (a mod kn) mod n == a mod n
+                    // All monkey operations are either addition or multiplication, and the product
+                    // of all of the divisors is by definition a multiple of every divisor.
+                    item %= test_product;
                 }
-
-                // Why this works:
-                // For any non-negative integers a and b and any positive integer n:
-                //   (a + b) mod n == ((a mod n) + b) mod n
-                //   (a * b) mod n == ((a mod n) * b) mod n
-                // For any non-negative integer a and any positive integers n and k:
-                //   (a mod kn) mod n == a mod n
-                // All monkey operations are either addition or multiplication, and the product
-                // of all of the divisors is by definition a multiple of every divisor.
-                item %= test_product;
 
                 let new_monkey = if item % monkeys[i].divisible_test == 0 {
                     monkeys[i].true_monkey
