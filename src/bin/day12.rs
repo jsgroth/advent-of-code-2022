@@ -34,10 +34,6 @@ fn solve(grid: &Vec<Vec<u8>>, start: (usize, usize), end: (usize, usize)) -> Opt
     while !queue.is_empty() {
         let Path { distance, position } = queue.pop_front().unwrap();
 
-        if position == end {
-            return Some(distance);
-        }
-
         let (i, j) = position;
         for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
             let ii = (i as i32) + dx;
@@ -52,9 +48,15 @@ fn solve(grid: &Vec<Vec<u8>>, start: (usize, usize), end: (usize, usize)) -> Opt
                 continue;
             }
 
-            if grid[ii][jj] <= grid[i][j] + 1 && !visited[ii][jj] {
-                visited[ii][jj] = true;
-                queue.push_back(Path::new(distance + 1, (ii, jj)));
+            if grid[ii][jj] <= grid[i][j] + 1 {
+                if (ii, jj) == end {
+                    return Some(distance + 1);
+                }
+
+                if !visited[ii][jj] {
+                    visited[ii][jj] = true;
+                    queue.push_back(Path::new(distance + 1, (ii, jj)));
+                }
             }
         }
     }
