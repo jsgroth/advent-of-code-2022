@@ -73,8 +73,8 @@ fn solve(input: &str, rounds: usize, divide_by_three: bool) -> u64 {
             let mut monkey_items: Vec<u64> = Vec::with_capacity(monkeys[i].items.len());
             monkey_items.append(&mut monkeys[i].items);
 
-            for item in &monkey_items {
-                let mut item = monkeys[i].operation.apply(*item);
+            for &item in &monkey_items {
+                let mut item = monkeys[i].operation.apply(item);
                 if divide_by_three {
                     item /= 3;
                 }
