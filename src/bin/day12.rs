@@ -1,7 +1,6 @@
 //! Day 12: Hill Climbing Algorithm
 //! https://adventofcode.com/2022/day/12
 
-use std::cmp;
 use std::collections::VecDeque;
 
 struct Input {
@@ -21,36 +20,39 @@ impl Path {
     }
 }
 
-fn solve(grid: &Vec<Vec<u8>>, start: (usize, usize), end: (usize, usize)) -> Option<usize> {
+fn solve(grid: &Vec<Vec<u8>>, start: Option<(usize, usize)>, end: (usize, usize)) -> usize {
     let rows = grid.len();
     let cols = grid[0].len();
 
     let mut visited = vec![vec![false; cols]; rows];
-    visited[start.0][start.1] = true;
+    visited[end.0][end.1] = true;
 
     let mut queue: VecDeque<Path> = VecDeque::new();
-    queue.push_back(Path::new(0, start));
+    queue.push_back(Path::new(0, end));
 
     while !queue.is_empty() {
         let Path { distance, position } = queue.pop_front().unwrap();
 
         let (i, j) = position;
         for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-            let ii = (i as i32) + dx;
-            let jj = (j as i32) + dy;
-            if ii < 0 || jj < 0 {
+            if (i == 0 && dx == -1) || (j == 0 && dy == -1) {
                 continue;
             }
 
-            let ii = ii as usize;
-            let jj = jj as usize;
+            let ii = ((i as i32) + dx) as usize;
+            let jj = ((j as i32) + dy) as usize;
             if ii >= rows || jj >= cols {
                 continue;
             }
 
-            if grid[ii][jj] <= grid[i][j] + 1 {
-                if (ii, jj) == end {
-                    return Some(distance + 1);
+            if grid[i][j] <= grid[ii][jj] + 1 {
+                match start {
+                    Some(start) => if (ii, jj) == start {
+                        return distance + 1;
+                    }
+                    None => if grid[ii][jj] == 0 {
+                        return distance + 1;
+                    }
                 }
 
                 if !visited[ii][jj] {
@@ -61,30 +63,19 @@ fn solve(grid: &Vec<Vec<u8>>, start: (usize, usize), end: (usize, usize)) -> Opt
         }
     }
 
-    None
+    panic!("no solution found");
 }
 
 fn solve_part_1(input: &str) -> usize {
     let Input { grid, start, end } = parse_input(input);
 
-    solve(&grid, start, end).expect("there should be a solution")
+    solve(&grid, Some(start), end)
 }
 
 fn solve_part_2(input: &str) -> usize {
     let Input { grid, end, .. } = parse_input(input);
 
-    let mut min_distance = usize::MAX;
-    for (i, row) in grid.iter().enumerate() {
-        for (j, &height) in row.iter().enumerate() {
-            if height == 0 {
-                if let Some(distance) = solve(&grid, (i, j), end) {
-                    min_distance = cmp::min(min_distance, distance)
-                }
-            }
-        }
-    }
-
-    min_distance
+    solve(&grid, None, end)
 }
 
 fn parse_input(input: &str) -> Input {
