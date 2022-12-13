@@ -7,13 +7,7 @@ use std::iter::Peekable;
 #[derive(Debug, PartialEq, Eq, Clone)]
 enum ListItem {
     Int(u32),
-    List(Vec<Box<ListItem>>),
-}
-
-impl ListItem {
-    fn new_list(items: Vec<ListItem>) -> Self {
-        Self::List(items.into_iter().map(Box::new).collect())
-    }
+    List(Vec<ListItem>),
 }
 
 impl PartialOrd<Self> for ListItem {
@@ -30,7 +24,7 @@ impl Ord for ListItem {
             },
             (ListItem::List(a), ListItem::List(b)) => {
                 for (a_item, b_item) in a.iter().zip(b.iter()) {
-                    match a_item.as_ref().cmp(b_item.as_ref()) {
+                    match a_item.cmp(b_item) {
                         Ordering::Equal => {},
                         ordering => {
                             return ordering;
@@ -40,9 +34,9 @@ impl Ord for ListItem {
 
                 a.len().cmp(&b.len())
             }
-            (ListItem::Int(a), ListItem::List(_)) => {
-                let tmp = ListItem::new_list(vec![ListItem::Int(*a)]);
-                tmp.cmp(other)
+            (ListItem::Int(_), ListItem::List(_)) => {
+                let self_as_list = ListItem::List(vec![self.clone()]);
+                self_as_list.cmp(other)
             }
             (ListItem::List(_), ListItem::Int(_)) => {
                 other.cmp(self).reverse()
@@ -54,9 +48,9 @@ impl Ord for ListItem {
 fn solve(input: &str) -> usize {
     let input = parse_input(input);
 
-    input.into_iter().enumerate().filter(|(_, (a, b))| {
-        a.cmp(b) != Ordering::Greater
-    })
+    input.into_iter()
+        .enumerate()
+        .filter(|(_, (a, b))| a.cmp(b).is_le())
         .map(|(i, _)| i + 1)
         .sum()
 }
@@ -64,10 +58,12 @@ fn solve(input: &str) -> usize {
 fn solve_part_2(input: &str) -> usize {
     let input = parse_input(input);
 
-    let mut all_items: Vec<_> = input.into_iter().flat_map(|(a, b)| vec![a, b]).collect();
+    let mut all_items: Vec<_> = input.into_iter()
+        .flat_map(|(a, b)| vec![a, b])
+        .collect();
 
-    let divider_packet_2 = divider_packet(2);
-    let divider_packet_6 = divider_packet(6);
+    let divider_packet_2 = ListItem::List(vec![ListItem::List(vec![ListItem::Int(2)])]);
+    let divider_packet_6 = ListItem::List(vec![ListItem::List(vec![ListItem::Int(6)])]);
     all_items.push(divider_packet_2.clone());
     all_items.push(divider_packet_6.clone());
 
@@ -76,14 +72,6 @@ fn solve_part_2(input: &str) -> usize {
     let index2 = all_items.binary_search(&divider_packet_2).unwrap();
     let index6 = all_items.binary_search(&divider_packet_6).unwrap();
     (index2 + 1) * (index6 + 1)
-}
-
-fn divider_packet(value: u32) -> ListItem {
-    ListItem::new_list(vec![
-        ListItem::new_list(vec![
-            ListItem::Int(value)
-        ])
-    ])
 }
 
 fn parse_input(input: &str) -> Vec<(ListItem, ListItem)> {
@@ -102,34 +90,17 @@ fn parse_input(input: &str) -> Vec<(ListItem, ListItem)> {
         .collect()
 }
 
-fn parse_list<I>(iter: &mut Peekable<I>) -> Vec<ListItem>
+fn parse_list_item<I>(iter: &mut Peekable<I>) -> ListItem
 where I: Iterator<Item = char>
 {
-    // Skip '['
-    iter.next();
-
-    let mut items: Vec<ListItem> = Vec::new();
-    while let Some(&c) = iter.peek() {
-        if c == ']' {
-            iter.next();
-            break;
-        }
-
-        if c == '[' {
-            items.push(parse_list_item(iter));
-        } else {
-            items.push(parse_int_item(iter));
-        }
-
-        if iter.peek() == Some(&',') {
-            iter.next();
-        }
+    match iter.peek().unwrap() {
+        '[' => ListItem::List(parse_list(iter)),
+        _c @ '0'..='9' => parse_int(iter),
+        _ => panic!("unexpected char"),
     }
-
-    items
 }
 
-fn parse_int_item<I>(iter: &mut Peekable<I>) -> ListItem
+fn parse_int<I>(iter: &mut Peekable<I>) -> ListItem
 where I: Iterator<Item = char>
 {
     let mut s = String::new();
@@ -143,14 +114,27 @@ where I: Iterator<Item = char>
     ListItem::Int(s.parse().expect("list item should be an integer"))
 }
 
-fn parse_list_item<I>(iter: &mut Peekable<I>) -> ListItem
-where I: Iterator<Item = char>
+fn parse_list<I>(iter: &mut Peekable<I>) -> Vec<ListItem>
+    where I: Iterator<Item = char>
 {
-    match iter.peek().unwrap() {
-        '[' => ListItem::new_list(parse_list(iter)),
-        _c @ '1'..='9' => parse_int_item(iter),
-        _ => panic!("unexpected char"),
+    // Skip '['
+    iter.next();
+
+    let mut items: Vec<ListItem> = Vec::new();
+    while let Some(&c) = iter.peek() {
+        if c == ']' {
+            iter.next();
+            break;
+        }
+
+        items.push(parse_list_item(iter));
+
+        if iter.peek() == Some(&',') {
+            iter.next();
+        }
     }
+
+    items
 }
 
 fn main() {
