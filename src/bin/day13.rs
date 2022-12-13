@@ -84,9 +84,9 @@ fn solve_part_2(input: &str) -> usize {
 
     all_items.sort();
 
-    let index2 = 1 + all_items.iter().position(|item| *item == divider_packet_2).unwrap();
-    let index6 = 1 + all_items.iter().position(|item| *item == divider_packet_6).unwrap();
-    index2 * index6
+    let index2 = all_items.binary_search(&divider_packet_2).unwrap();
+    let index6 = all_items.binary_search(&divider_packet_6).unwrap();
+    (index2 + 1) * (index6 + 1)
 }
 
 fn divider_packet(value: u32) -> ListItem {
