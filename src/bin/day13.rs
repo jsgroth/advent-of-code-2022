@@ -19,10 +19,10 @@ impl PartialOrd<Self> for ListItem {
 impl Ord for ListItem {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (ListItem::Int(a), ListItem::Int(b)) => {
+            (Self::Int(a), Self::Int(b)) => {
                 a.cmp(b)
             }
-            (ListItem::List(a), ListItem::List(b)) => {
+            (Self::List(a), Self::List(b)) => {
                 for (a_item, b_item) in a.iter().zip(b) {
                     match a_item.cmp(b_item) {
                         Ordering::Equal => {},
@@ -34,11 +34,11 @@ impl Ord for ListItem {
 
                 a.len().cmp(&b.len())
             }
-            (ListItem::Int(_), ListItem::List(_)) => {
-                let self_as_list = ListItem::List(vec![self.clone()]);
+            (Self::Int(_), Self::List(_)) => {
+                let self_as_list = Self::List(vec![self.clone()]);
                 self_as_list.cmp(other)
             }
-            (ListItem::List(_), ListItem::Int(_)) => {
+            (Self::List(_), Self::Int(_)) => {
                 other.cmp(self).reverse()
             }
         }
