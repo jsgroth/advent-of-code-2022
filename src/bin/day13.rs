@@ -29,27 +29,16 @@ impl Ord for ListItem {
                 a.cmp(b)
             },
             (ListItem::List(a), ListItem::List(b)) => {
-                let mut ai = 0;
-                let mut bi = 0;
-                while ai < a.len() && bi < b.len() {
-                    match a[ai].as_ref().cmp(b[bi].as_ref()) {
+                for (a_item, b_item) in a.iter().zip(b.iter()) {
+                    match a_item.as_ref().cmp(b_item.as_ref()) {
                         Ordering::Equal => {},
                         ordering => {
                             return ordering;
                         }
                     }
-
-                    ai += 1;
-                    bi += 1;
                 }
 
-                if ai < a.len() {
-                    Ordering::Greater
-                } else if bi < b.len() {
-                    Ordering::Less
-                } else {
-                    Ordering::Equal
-                }
+                a.len().cmp(&b.len())
             }
             (ListItem::Int(a), ListItem::List(_)) => {
                 let tmp = ListItem::new_list(vec![ListItem::Int(*a)]);
