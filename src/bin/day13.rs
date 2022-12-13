@@ -21,7 +21,7 @@ impl Ord for ListItem {
         match (self, other) {
             (ListItem::Int(a), ListItem::Int(b)) => {
                 a.cmp(b)
-            },
+            }
             (ListItem::List(a), ListItem::List(b)) => {
                 for (a_item, b_item) in a.iter().zip(b.iter()) {
                     match a_item.cmp(b_item) {
