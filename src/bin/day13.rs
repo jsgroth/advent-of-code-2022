@@ -23,7 +23,7 @@ impl Ord for ListItem {
                 a.cmp(b)
             }
             (ListItem::List(a), ListItem::List(b)) => {
-                for (a_item, b_item) in a.iter().zip(b.iter()) {
+                for (a_item, b_item) in a.iter().zip(b) {
                     match a_item.cmp(b_item) {
                         Ordering::Equal => {},
                         ordering => {
