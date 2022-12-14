@@ -28,8 +28,8 @@ impl SparseGrid {
         }
     }
 
-    fn max_row(&self) -> i32 {
-        *self.grid.keys().max().expect("grid should not be empty")
+    fn max_row(&self) -> Option<i32> {
+        self.grid.keys().max().copied()
     }
 }
 
@@ -38,11 +38,12 @@ const POUR_START_Y: i32 = 0;
 
 fn solve(input: &str, inf_rock_at_bottom: bool) -> usize {
     let mut sparse_grid = parse_input(input);
+    assert!(!sparse_grid.grid.is_empty());
 
     let max_row = if inf_rock_at_bottom {
-        sparse_grid.max_row() + 1
+        sparse_grid.max_row().unwrap() + 1
     } else {
-        sparse_grid.max_row()
+        sparse_grid.max_row().unwrap()
     };
 
     let mut sand_count = 0;
