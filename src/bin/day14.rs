@@ -1,35 +1,33 @@
 //! Day 14: Regolith Reservoir
 //! https://adventofcode.com/2022/day/14
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+struct Point {
+    x: i32,
+    y: i32,
+}
 
 struct SparseGrid {
-    grid: HashMap<i32, HashSet<i32>>,
+    grid: HashSet<Point>,
 }
 
 impl SparseGrid {
     fn new() -> Self {
-        Self { grid: HashMap::new() }
+        Self { grid: HashSet::new() }
     }
 
     fn get(&self, x: i32, y: i32) -> bool {
-        self.grid.get(&y)
-            .map(|row| row.contains(&x))
-            .unwrap_or_default()
+        self.grid.contains(&Point { x, y })
     }
 
     fn set(&mut self, x: i32, y: i32) {
-        if let Some(row) = self.grid.get_mut(&y) {
-            row.insert(x);
-        } else {
-            let mut row: HashSet<i32> = HashSet::new();
-            row.insert(x);
-            self.grid.insert(y, row);
-        }
+        self.grid.insert(Point { x, y });
     }
 
     fn max_row(&self) -> Option<i32> {
-        self.grid.keys().max().copied()
+        self.grid.iter().map(|Point { y, .. }| y).max().copied()
     }
 }
 
