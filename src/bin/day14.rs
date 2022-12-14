@@ -36,13 +36,9 @@ impl SparseGrid {
 const POUR_START_X: i32 = 500;
 const POUR_START_Y: i32 = 0;
 
-fn solve(input: &str) -> usize {
-    let grid = parse_input(input);
+fn solve(input: &str, inf_rock_at_bottom: bool) -> usize {
+    let mut sparse_grid = parse_input(input);
 
-    solve_inner(grid, false)
-}
-
-fn solve_inner(mut sparse_grid: SparseGrid, inf_rock_at_bottom: bool) -> usize {
     let max_row = if inf_rock_at_bottom {
         sparse_grid.max_row() + 1
     } else {
@@ -84,12 +80,6 @@ fn solve_inner(mut sparse_grid: SparseGrid, inf_rock_at_bottom: bool) -> usize {
     sand_count
 }
 
-fn solve_part_2(input: &str) -> usize {
-    let grid = parse_input(input);
-
-    solve_inner(grid, true)
-}
-
 fn parse_input(input: &str) -> SparseGrid {
     let paths: Vec<_> = input.lines().map(parse_line).collect();
 
@@ -126,10 +116,10 @@ fn parse_line(line: &str) -> Vec<(i32, i32)> {
 fn main() {
     let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
-    let solution1 = solve(&input);
+    let solution1 = solve(&input, false);
     println!("{solution1}");
 
-    let solution2 = solve_part_2(&input);
+    let solution2 = solve(&input, true);
     println!("{solution2}");
 }
 
@@ -141,11 +131,11 @@ mod tests {
 
     #[test]
     fn test_sample_input_part_1() {
-        assert_eq!(24, solve(SAMPLE_INPUT));
+        assert_eq!(24, solve(SAMPLE_INPUT, false));
     }
 
     #[test]
     fn test_sample_input_part_2() {
-        assert_eq!(93, solve_part_2(SAMPLE_INPUT));
+        assert_eq!(93, solve(SAMPLE_INPUT, true));
     }
 }
