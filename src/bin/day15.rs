@@ -85,21 +85,18 @@ fn solve_part_2(input: &str, max_coordinate: i32) -> i64 {
 fn generate_candidate_points(sensor: &Sensor, max_coordinate: i32) -> impl Iterator<Item = Point> + '_ {
     let distance = sensor.nearest_beacon_distance + 1;
 
-    point_iterator(sensor.coordinates.x - distance, sensor.coordinates.y, 1, 1, distance, max_coordinate)
-        .chain(point_iterator(sensor.coordinates.x, sensor.coordinates.y + distance, 1, -1, distance, max_coordinate))
-        .chain(point_iterator(sensor.coordinates.x + distance, sensor.coordinates.y, -1, -1, distance, max_coordinate))
-        .chain(point_iterator(sensor.coordinates.x, sensor.coordinates.y - distance, -1, 1, distance, max_coordinate))
+    point_iterator(sensor.coordinates.x - distance, sensor.coordinates.y, 1, 1, distance)
+        .chain(point_iterator(sensor.coordinates.x, sensor.coordinates.y + distance, 1, -1, distance))
+        .chain(point_iterator(sensor.coordinates.x + distance, sensor.coordinates.y, -1, -1, distance))
+        .chain(point_iterator(sensor.coordinates.x, sensor.coordinates.y - distance, -1, 1, distance))
+        .filter(move |p| {
+            p.x >= 0 && p.y >= 0 && p.x <= max_coordinate && p.y <= max_coordinate
+        })
 }
 
-fn point_iterator(start_x: i32, start_y: i32, dx: i32, dy: i32, distance: i32, max_coordinate: i32) -> impl Iterator<Item = Point> {
-    (0..distance).filter_map(move |d| {
-        let x = start_x + dx * d;
-        let y = start_y + dy * d;
-        if x >= 0 && y >= 0 && x <= max_coordinate && y <= max_coordinate {
-            Some(Point::new(x, y))
-        } else {
-            None
-        }
+fn point_iterator(start_x: i32, start_y: i32, dx: i32, dy: i32, distance: i32) -> impl Iterator<Item = Point> {
+    (0..distance).map(move |d| {
+        Point::new(start_x + dx * d, start_y + dy * d)
     })
 }
 
