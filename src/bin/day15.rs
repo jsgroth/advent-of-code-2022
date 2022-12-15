@@ -66,10 +66,11 @@ fn solve_part_2(input: &str, max_coordinate: i32) -> i64 {
     let sensors = parse_input(input);
 
     for sensor in &sensors {
-        let points = generate_candidate_points(sensor, max_coordinate);
-        let outside_all_sensors: Vec<_> = points.into_iter().filter(|p| {
-            sensors.iter().all(|sensor| sensor.distance_to(p) > sensor.nearest_beacon_distance)
-        }).collect();
+        let outside_all_sensors: Vec<_> = generate_candidate_points(sensor, max_coordinate)
+            .filter(|p| {
+                sensors.iter().all(|sensor| sensor.distance_to(p) > sensor.nearest_beacon_distance)
+            })
+            .collect();
 
         if outside_all_sensors.len() == 1 {
             let result = &outside_all_sensors[0];
@@ -81,51 +82,29 @@ fn solve_part_2(input: &str, max_coordinate: i32) -> i64 {
 }
 
 // Return all points that are (nearest_beacon_distance + 1) away from the sensor and within bounds
-fn generate_candidate_points(sensor: &Sensor, max_coordinate: i32) -> Vec<Point> {
-    let mut result: Vec<Point> = Vec::new();
+fn generate_candidate_points(sensor: &Sensor, max_coordinate: i32) -> impl Iterator<Item = Point> + '_ {
+    let distance = sensor.nearest_beacon_distance + 1;
 
-    let mut p = Point::new(sensor.coordinates.x - sensor.nearest_beacon_distance - 1, sensor.coordinates.y);
-    while p.x != sensor.coordinates.x {
-        if in_bounds(&p, max_coordinate) {
-            result.push(p);
-        }
-
-        p.x += 1;
-        p.y += 1;
-    }
-
-    while p.y != sensor.coordinates.y {
-        if in_bounds(&p, max_coordinate) {
-            result.push(p);
-        }
-
-        p.x += 1;
-        p.y -= 1;
-    }
-
-    while p.x != sensor.coordinates.x {
-        if in_bounds(&p, max_coordinate) {
-            result.push(p);
-        }
-
-        p.x -= 1;
-        p.y -= 1;
-    }
-
-    while p.y != sensor.coordinates.y {
-        if in_bounds(&p, max_coordinate) {
-            result.push(p);
-        }
-
-        p.x -= 1;
-        p.y += 1;
-    }
-
-    result
+    point_iterator(sensor.coordinates.x - distance, sensor.coordinates.y, 1, 1, distance, max_coordinate)
+        .chain(point_iterator(sensor.coordinates.x, sensor.coordinates.y + distance, 1, -1, distance, max_coordinate))
+        .chain(point_iterator(sensor.coordinates.x + distance, sensor.coordinates.y, -1, -1, distance, max_coordinate))
+        .chain(point_iterator(sensor.coordinates.x, sensor.coordinates.y - distance, -1, 1, distance, max_coordinate))
 }
 
-fn in_bounds(p: &Point, max_coordinate: i32) -> bool {
-    p.x >= 0 && p.y >= 0 && p.x <= max_coordinate && p.y <= max_coordinate
+fn point_iterator(start_x: i32, start_y: i32, dx: i32, dy: i32, distance: i32, max_coordinate: i32) -> impl Iterator<Item = Point> {
+    (0..distance).filter_map(move |d| {
+        let x = start_x + dx * d;
+        let y = start_y + dy * d;
+        if in_bounds(x, y, max_coordinate) {
+            Some(Point::new(x, y))
+        } else {
+            None
+        }
+    })
+}
+
+fn in_bounds(x: i32, y: i32, max_coordinate: i32) -> bool {
+    x >= 0 && y >= 0 && x <= max_coordinate && y <= max_coordinate
 }
 
 fn parse_input(input: &str) -> Vec<Sensor> {
