@@ -95,16 +95,12 @@ fn point_iterator(start_x: i32, start_y: i32, dx: i32, dy: i32, distance: i32, m
     (0..distance).filter_map(move |d| {
         let x = start_x + dx * d;
         let y = start_y + dy * d;
-        if in_bounds(x, y, max_coordinate) {
+        if x >= 0 && y >= 0 && x <= max_coordinate && y <= max_coordinate {
             Some(Point::new(x, y))
         } else {
             None
         }
     })
-}
-
-fn in_bounds(x: i32, y: i32, max_coordinate: i32) -> bool {
-    x >= 0 && y >= 0 && x <= max_coordinate && y <= max_coordinate
 }
 
 fn parse_input(input: &str) -> Vec<Sensor> {
