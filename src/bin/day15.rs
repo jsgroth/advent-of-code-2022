@@ -82,7 +82,7 @@ fn solve_part_2(input: &str, max_coordinate: i32) -> i64 {
 }
 
 // Return all points that are (nearest_beacon_distance + 1) away from the sensor and within bounds
-fn generate_candidate_points(sensor: &Sensor, max_coordinate: i32) -> impl Iterator<Item = Point> + '_ {
+fn generate_candidate_points(sensor: &Sensor, max_coordinate: i32) -> impl Iterator<Item = Point> {
     let distance = sensor.nearest_beacon_distance + 1;
 
     point_iterator(sensor.coordinates.x - distance, sensor.coordinates.y, 1, 1, distance)
