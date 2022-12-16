@@ -90,6 +90,72 @@ fn solve(input: &str) -> (u32, u32) {
     (part_1_solution, part_2_solution)
 }
 
+// Find the distance between each pair of nodes with flow, as well as the distance from the
+// starting node to every node with flow
+fn find_path_lengths(graph: &CaveGraph) -> Vec<Vec<u32>> {
+    let mut result = vec![vec![0; graph.valves.len()]; graph.valves.len()];
+
+    for valve in graph.valves.iter().filter(|valve| valve.name == "AA" || valve.flow_rate > 0) {
+        for other_valve in graph.valves.iter().filter(|other_valve| valve.index != other_valve.index && other_valve.flow_rate > 0) {
+            let distance = find_shortest_path(graph, valve.index, other_valve.index);
+            result[valve.index][other_valve.index] = distance;
+        }
+    }
+
+    result
+}
+
+// Simple BFS to find the length of the shortest path between two nodes
+fn find_shortest_path(graph: &CaveGraph, a: usize, b: usize) -> u32 {
+    let mut queue: VecDeque<(usize, u32)> = VecDeque::new();
+    queue.push_back((a, 0));
+
+    let mut visited: HashSet<usize> = HashSet::new();
+    visited.insert(a);
+
+    while !queue.is_empty() {
+        let (index, distance) = queue.pop_front().unwrap();
+
+        for &tunnel in &graph.valves[index].tunnels {
+            if tunnel == b {
+                return distance + 1;
+            }
+
+            if !visited.contains(&tunnel) {
+                visited.insert(tunnel);
+                queue.push_back((tunnel, distance + 1));
+            }
+        }
+    }
+
+    panic!("no path found from {a} to {b}");
+}
+
+fn find_best_path(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, start: usize, visited: HashSet<usize>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
+    let mut result = current_total + remaining * current_running;
+
+    for &other_index in &graph.valves_with_flow {
+        let distance = path_lengths[start][other_index];
+        if !visited.contains(&other_index) && distance + 2 <= remaining {
+            let mut new_visited = visited.clone();
+            new_visited.insert(other_index);
+
+            let sub_result = find_best_path(
+                graph,
+                path_lengths,
+                other_index,
+                new_visited,
+                remaining - distance - 1,
+                current_total + (distance + 1) * current_running,
+                current_running + graph.valves[other_index].flow_rate,
+            );
+            result = cmp::max(result, sub_result);
+        }
+    }
+
+    result
+}
+
 fn find_with_elephant(
     graph: &CaveGraph,
     path_lengths: &Vec<Vec<u32>>,
@@ -298,72 +364,6 @@ fn compute_max_possible(
     }
 
     total
-}
-
-fn find_best_path(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, start: usize, visited: HashSet<usize>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
-    let mut result = current_total + remaining * current_running;
-
-    for &other_index in &graph.valves_with_flow {
-        let distance = path_lengths[start][other_index];
-        if !visited.contains(&other_index) && distance + 2 <= remaining {
-            let mut new_visited = visited.clone();
-            new_visited.insert(other_index);
-
-            let sub_result = find_best_path(
-                graph,
-                path_lengths,
-                other_index,
-                new_visited,
-                remaining - distance - 1,
-                current_total + (distance + 1) * current_running,
-                current_running + graph.valves[other_index].flow_rate,
-            );
-            result = cmp::max(result, sub_result);
-        }
-    }
-
-    result
-}
-
-// Find the distance between each pair of nodes with flow, as well as the distance from the
-// starting node to every node with flow
-fn find_path_lengths(graph: &CaveGraph) -> Vec<Vec<u32>> {
-    let mut result = vec![vec![0; graph.valves.len()]; graph.valves.len()];
-
-    for valve in graph.valves.iter().filter(|valve| valve.name == "AA" || valve.flow_rate > 0) {
-        for other_valve in graph.valves.iter().filter(|other_valve| valve.index != other_valve.index && other_valve.flow_rate > 0) {
-            let distance = find_shortest_path(graph, valve.index, other_valve.index);
-            result[valve.index][other_valve.index] = distance;
-        }
-    }
-
-    result
-}
-
-// Simple BFS to find the length of the shortest path between two nodes
-fn find_shortest_path(graph: &CaveGraph, a: usize, b: usize) -> u32 {
-    let mut queue: VecDeque<(usize, u32)> = VecDeque::new();
-    queue.push_back((a, 0));
-
-    let mut visited: HashSet<usize> = HashSet::new();
-    visited.insert(a);
-
-    while !queue.is_empty() {
-        let (index, distance) = queue.pop_front().unwrap();
-
-        for &tunnel in &graph.valves[index].tunnels {
-            if tunnel == b {
-                return distance + 1;
-            }
-
-            if !visited.contains(&tunnel) {
-                visited.insert(tunnel);
-                queue.push_back((tunnel, distance + 1));
-            }
-        }
-    }
-
-    panic!("no path found from {a} to {b}");
 }
 
 fn parse_input(input: &str) -> CaveGraph {
