@@ -1,3 +1,6 @@
+//! Day 16: Proboscidea Volcanium
+//! https://adventofcode.com/2022/day/16
+
 use std::cmp;
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -9,20 +12,6 @@ struct Valve {
 
 struct CaveGraph {
     valves: HashMap<String, Valve>,
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-struct MemoizeKey {
-    your_target: String,
-    your_remaining_to_target: u32,
-    elephant_target: String,
-    elephant_remaining_to_target: u32,
-    visited: Vec<String>,
-    remaining: u32,
-    current_total: u32,
-    current_running: u32,
-    you_stopped: bool,
-    elephant_stopped: bool,
 }
 
 fn solve(input: &str) -> (u32, u32) {
@@ -45,7 +34,7 @@ fn solve(input: &str) -> (u32, u32) {
         0,
         false,
         false,
-        &mut HashMap::new(),
+        &mut 0,
     ));
 
     (part_1_solution, part_2_solution)
@@ -64,38 +53,13 @@ fn find_with_elephant(
     current_running: u32,
     you_stopped: bool,
     elephant_stopped: bool,
-    cache: &mut HashMap<MemoizeKey, u32>,
+    max_so_far: &mut u32,
 ) -> u32 {
-    // let memoize_key = MemoizeKey {
-    //     your_target: String::from(your_target),
-    //     your_remaining_to_target,
-    //     elephant_target: String::from(elephant_target),
-    //     elephant_remaining_to_target,
-    //     visited: visited.iter().cloned().collect(),
-    //     remaining,
-    //     current_total,
-    //     current_running,
-    //     you_stopped,
-    //     elephant_stopped,
-    // };
-    // if let Some(&result) = cache.get(&memoize_key) {
-    //     return result;
-    // }
-
+    if compute_max_possible(graph, path_lengths, your_target, your_remaining_to_target, elephant_target, elephant_remaining_to_target, visited.clone(), remaining, current_total, current_running, you_stopped, elephant_stopped) < *max_so_far {
+        return u32::MIN;
+    }
 
     let mut result = current_total + remaining * current_running;
-
-    // println!("STATUS:");
-    // println!("  your_target: {your_target}, remaining={remaining}");
-    // println!("  your_remaining: {your_remaining_to_target}");
-    // println!("  elephant_target: {elephant_target}, remaining={remaining}");
-    // println!("  elephant_remaining: {elephant_remaining_to_target}");
-    // println!("  visited: {visited:?}");
-    // println!("  remaining: {remaining}");
-    // println!("  current_total: {current_total}");
-    // println!("  current_running: {current_running}");
-    // println!("  current max: {result}");
-    // println!();
 
     if your_remaining_to_target == 0 && !you_stopped {
         let add_to_running = graph.valves.get(your_target).unwrap().flow_rate;
@@ -120,7 +84,7 @@ fn find_with_elephant(
                     current_running + add_to_running,
                     false,
                     elephant_stopped,
-                    cache,
+                    max_so_far,
                 );
                 result = cmp::max(result, sub_result);
 
@@ -142,7 +106,7 @@ fn find_with_elephant(
                 current_running + add_to_running,
                 true,
                 elephant_stopped,
-                cache,
+                max_so_far,
             );
             result = cmp::max(result, sub_result);
         }
@@ -169,7 +133,7 @@ fn find_with_elephant(
                     current_running + add_to_running,
                     you_stopped,
                     false,
-                    cache,
+                    max_so_far,
                 );
                 result = cmp::max(result, sub_result);
 
@@ -191,7 +155,7 @@ fn find_with_elephant(
                 current_running + add_to_running,
                 you_stopped,
                 true,
-                cache,
+                max_so_far,
             );
             result = cmp::max(result, sub_result);
         }
@@ -210,7 +174,7 @@ fn find_with_elephant(
             current_running,
             false,
             elephant_stopped,
-            cache,
+            max_so_far,
         );
         result = cmp::max(result, sub_result);
     } else if elephant_remaining_to_target > 0 && (you_stopped || elephant_remaining_to_target <= your_remaining_to_target) {
@@ -228,14 +192,43 @@ fn find_with_elephant(
             current_running,
             you_stopped,
             false,
-            cache,
+            max_so_far,
         );
         result = cmp::max(result, sub_result);
     }
 
-    // cache.insert(memoize_key, result);
+    *max_so_far = cmp::max(*max_so_far, result);
 
     result
+}
+
+fn compute_max_possible(graph: &CaveGraph, path_lengths: &HashMap<String, HashMap<String, u32>>, your_target: &str, your_remaining_to_target: u32, elephant_target: &str, elephant_remaining_to_target: u32, visited: HashSet<String>, remaining: u32, current_total: u32, current_running: u32, you_stopped: bool, elephant_stopped: bool) -> u32 {
+    let mut total = current_total + remaining * current_running;
+
+    if !you_stopped {
+        total += (remaining - your_remaining_to_target) * graph.valves.get(your_target).unwrap().flow_rate;
+    }
+    if !elephant_stopped {
+        total += (remaining - elephant_remaining_to_target) * graph.valves.get(elephant_target).unwrap().flow_rate;
+    }
+
+    let unvisited_names: HashSet<_> = path_lengths.values()
+        .flat_map(|m| m.keys())
+        .cloned()
+        .filter(|name| !visited.contains(name))
+        .collect();
+
+    for name in &unvisited_names {
+        if !visited.contains(name) {
+            let earliest_possible = 1 + cmp::min(
+                if !you_stopped { your_remaining_to_target + path_lengths.get(your_target).unwrap().get(name).unwrap() } else { u32::MAX },
+                if !elephant_stopped { elephant_remaining_to_target + path_lengths.get(elephant_target).unwrap().get(name).unwrap() } else { u32::MAX },
+            );
+            total += remaining.saturating_sub(earliest_possible) * graph.valves.get(name).unwrap().flow_rate;
+        }
+    }
+
+    total
 }
 
 fn find_possible_combinations(graph: &CaveGraph, path_lengths: &HashMap<String, HashMap<String, u32>>, start: &str, visited: HashSet<String>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
