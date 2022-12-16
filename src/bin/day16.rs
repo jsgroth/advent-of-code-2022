@@ -220,9 +220,9 @@ fn compute_max_possible(graph: &CaveGraph, path_lengths: &HashMap<String, HashMa
 
     for name in &unvisited_names {
         if !visited.contains(name) {
-            let earliest_possible = 1 + cmp::min(
-                if !you_stopped { your_remaining_to_target + path_lengths.get(your_target).unwrap().get(name).unwrap() } else { u32::MAX },
-                if !elephant_stopped { elephant_remaining_to_target + path_lengths.get(elephant_target).unwrap().get(name).unwrap() } else { u32::MAX },
+            let earliest_possible = cmp::min(
+                if !you_stopped { your_remaining_to_target + path_lengths.get(your_target).unwrap().get(name).unwrap() + 1 } else { u32::MAX },
+                if !elephant_stopped { elephant_remaining_to_target + path_lengths.get(elephant_target).unwrap().get(name).unwrap() + 1 } else { u32::MAX },
             );
             total += remaining.saturating_sub(earliest_possible) * graph.valves.get(name).unwrap().flow_rate;
         }
