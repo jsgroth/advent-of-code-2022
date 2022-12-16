@@ -6,12 +6,61 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 struct Valve {
     name: String,
+    index: usize,
     flow_rate: u32,
-    tunnels: Vec<String>,
+    tunnels: Vec<usize>,
+}
+
+impl Valve {
+    fn new(name: String, index: usize) -> Self {
+        Self {
+            name,
+            index,
+            flow_rate: 0,
+            tunnels: Vec::new(),
+        }
+    }
 }
 
 struct CaveGraph {
-    valves: HashMap<String, Valve>,
+    valves: Vec<Valve>,
+    name_to_index: HashMap<String, usize>,
+    valves_with_flow: Vec<usize>,
+}
+
+impl CaveGraph {
+    fn new() -> Self {
+        Self {
+            valves: Vec::new(),
+            name_to_index: HashMap::new(),
+            valves_with_flow: Vec::new(),
+        }
+    }
+
+    fn get_or_add_valve_index(&mut self, name: &str) -> usize {
+        if let Some(&index) = self.name_to_index.get(name) {
+            index
+        } else {
+            let index = self.valves.len();
+            self.valves.push(Valve::new(String::from(name), index));
+            self.name_to_index.insert(String::from(name), index);
+            index
+        }
+    }
+
+    fn add_valve(&mut self, name: &str, flow_rate: u32, tunnels: &[&str]) {
+        let index = self.get_or_add_valve_index(name);
+        self.valves[index].flow_rate = flow_rate;
+
+        for tunnel in tunnels {
+            let tunnel_index = self.get_or_add_valve_index(tunnel);
+            self.valves[index].tunnels.push(tunnel_index);
+        }
+
+        if flow_rate > 0 {
+            self.valves_with_flow.push(index);
+        }
+    }
 }
 
 fn solve(input: &str) -> (u32, u32) {
@@ -19,14 +68,15 @@ fn solve(input: &str) -> (u32, u32) {
 
     let path_lengths = find_path_lengths(&graph);
 
-    let part_1_solution = find_possible_combinations(&graph, &path_lengths, "AA", HashSet::new(), 30, 0, 0);
+    let start_index = *graph.name_to_index.get("AA").unwrap();
+    let part_1_solution = find_possible_combinations(&graph, &path_lengths, start_index, HashSet::new(), 30, 0, 0);
 
     let part_2_solution = cmp::max(part_1_solution, find_with_elephant(
         &graph,
         &path_lengths,
-        "AA",
+        start_index,
         0,
-        "AA",
+        start_index,
         0,
         HashSet::new(),
         26,
@@ -42,12 +92,12 @@ fn solve(input: &str) -> (u32, u32) {
 
 fn find_with_elephant(
     graph: &CaveGraph,
-    path_lengths: &HashMap<String, HashMap<String, u32>>,
-    your_target: &str,
+    path_lengths: &Vec<Vec<u32>>,
+    your_target: usize,
     your_remaining_to_target: u32,
-    elephant_target: &str,
+    elephant_target: usize,
     elephant_remaining_to_target: u32,
-    visited: HashSet<String>,
+    visited: HashSet<usize>,
     remaining: u32,
     current_total: u32,
     current_running: u32,
@@ -55,26 +105,40 @@ fn find_with_elephant(
     elephant_stopped: bool,
     max_so_far: &mut u32,
 ) -> u32 {
-    if compute_max_possible(graph, path_lengths, your_target, your_remaining_to_target, elephant_target, elephant_remaining_to_target, visited.clone(), remaining, current_total, current_running, you_stopped, elephant_stopped) < *max_so_far {
+    if *max_so_far >= compute_max_possible(
+        graph,
+        path_lengths,
+        your_target,
+        your_remaining_to_target,
+        elephant_target,
+        elephant_remaining_to_target,
+        &visited,
+        remaining,
+        current_total,
+        current_running,
+        you_stopped,
+        elephant_stopped
+    ) {
         return u32::MIN;
     }
 
     let mut result = current_total + remaining * current_running;
 
     if your_remaining_to_target == 0 && !you_stopped {
-        let add_to_running = graph.valves.get(your_target).unwrap().flow_rate;
+        let add_to_running = graph.valves[your_target].flow_rate;
 
         let mut moved = false;
 
-        for (other_name, &distance) in path_lengths.get(your_target).unwrap() {
-            if !visited.contains(other_name) && distance + 2 <= remaining {
+        for &other_index in &graph.valves_with_flow {
+            let distance = path_lengths[your_target][other_index];
+            if !visited.contains(&other_index) && distance + 2 <= remaining {
                 let mut new_visited = visited.clone();
-                new_visited.insert(other_name.clone());
+                new_visited.insert(other_index);
 
                 let sub_result = find_with_elephant(
                     graph,
                     path_lengths,
-                    other_name,
+                    other_index,
                     distance + 1,
                     elephant_target,
                     elephant_remaining_to_target,
@@ -100,7 +164,7 @@ fn find_with_elephant(
                 0,
                 elephant_target,
                 elephant_remaining_to_target,
-                visited.clone(),
+                visited,
                 remaining,
                 current_total,
                 current_running + add_to_running,
@@ -111,21 +175,22 @@ fn find_with_elephant(
             result = cmp::max(result, sub_result);
         }
     } else if elephant_remaining_to_target == 0 && !elephant_stopped {
-        let add_to_running = graph.valves.get(elephant_target).unwrap().flow_rate;
+        let add_to_running = graph.valves[elephant_target].flow_rate;
 
         let mut moved = false;
 
-        for (other_name, &distance) in path_lengths.get(elephant_target).unwrap() {
-            if !visited.contains(other_name) && distance + 2 <= remaining {
+        for &other_index in &graph.valves_with_flow {
+            let distance = path_lengths[elephant_target][other_index];
+            if !visited.contains(&other_index) && distance + 2 <= remaining {
                 let mut new_visited = visited.clone();
-                new_visited.insert(other_name.clone());
+                new_visited.insert(other_index);
 
                 let sub_result = find_with_elephant(
                     graph,
                     path_lengths,
                     your_target,
                     your_remaining_to_target,
-                    other_name,
+                    other_index,
                     distance + 1,
                     new_visited,
                     remaining,
@@ -149,7 +214,7 @@ fn find_with_elephant(
                 your_remaining_to_target,
                 elephant_target,
                 0,
-                visited.clone(),
+                visited,
                 remaining,
                 current_total,
                 current_running + add_to_running,
@@ -168,7 +233,7 @@ fn find_with_elephant(
             0,
             elephant_target,
             new_elephant_remaining,
-            visited.clone(),
+            visited,
             remaining - your_remaining_to_target,
             current_total + your_remaining_to_target * current_running,
             current_running,
@@ -186,7 +251,7 @@ fn find_with_elephant(
             new_your_remaining,
             elephant_target,
             0,
-            visited.clone(),
+            visited,
             remaining - elephant_remaining_to_target,
             current_total + elephant_remaining_to_target * current_running,
             current_running,
@@ -202,53 +267,67 @@ fn find_with_elephant(
     result
 }
 
-fn compute_max_possible(graph: &CaveGraph, path_lengths: &HashMap<String, HashMap<String, u32>>, your_target: &str, your_remaining_to_target: u32, elephant_target: &str, elephant_remaining_to_target: u32, visited: HashSet<String>, remaining: u32, current_total: u32, current_running: u32, you_stopped: bool, elephant_stopped: bool) -> u32 {
+fn compute_max_possible(
+    graph: &CaveGraph,
+    path_lengths: &Vec<Vec<u32>>,
+    your_target: usize,
+    your_remaining_to_target: u32,
+    elephant_target: usize,
+    elephant_remaining_to_target: u32,
+    visited: &HashSet<usize>,
+    remaining: u32,
+    current_total: u32,
+    current_running: u32,
+    you_stopped: bool,
+    elephant_stopped: bool,
+) -> u32 {
     let mut total = current_total + remaining * current_running;
 
     if !you_stopped {
-        total += (remaining - your_remaining_to_target) * graph.valves.get(your_target).unwrap().flow_rate;
+        total += (remaining - your_remaining_to_target) * graph.valves[your_target].flow_rate;
     }
     if !elephant_stopped {
-        total += (remaining - elephant_remaining_to_target) * graph.valves.get(elephant_target).unwrap().flow_rate;
+        total += (remaining - elephant_remaining_to_target) * graph.valves[elephant_target].flow_rate;
     }
 
-    let unvisited_names: Vec<_> = graph.valves.values().filter_map(|valve| {
-        if valve.flow_rate > 0 && !visited.contains(&valve.name) {
-            Some(valve.name.clone())
+    let unvisited_indices: Vec<_> = graph.valves.iter().filter_map(|valve| {
+        if valve.flow_rate > 0 && !visited.contains(&valve.index) {
+            Some(valve.index)
         } else {
             None
         }
     }).collect();
 
-    for name in &unvisited_names {
-        if !visited.contains(name) {
+    for &index in &unvisited_indices {
+        if !visited.contains(&index) {
             let earliest_possible = cmp::min(
-                if !you_stopped { your_remaining_to_target + path_lengths.get(your_target).unwrap().get(name).unwrap() + 1 } else { u32::MAX },
-                if !elephant_stopped { elephant_remaining_to_target + path_lengths.get(elephant_target).unwrap().get(name).unwrap() + 1 } else { u32::MAX },
+                if !you_stopped { your_remaining_to_target + path_lengths[your_target][index] + 1 } else { u32::MAX },
+                if !elephant_stopped { elephant_remaining_to_target + path_lengths[elephant_target][index] + 1 } else { u32::MAX },
             );
-            total += remaining.saturating_sub(earliest_possible) * graph.valves.get(name).unwrap().flow_rate;
+            total += remaining.saturating_sub(earliest_possible) * graph.valves[index].flow_rate;
         }
     }
 
     total
 }
 
-fn find_possible_combinations(graph: &CaveGraph, path_lengths: &HashMap<String, HashMap<String, u32>>, start: &str, visited: HashSet<String>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
+fn find_possible_combinations(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, start: usize, visited: HashSet<usize>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
     let mut result = current_total + remaining * current_running;
 
-    for (other_name, distance) in path_lengths.get(start).unwrap() {
-        if !visited.contains(other_name) && distance + 2 <= remaining {
+    for &other_index in &graph.valves_with_flow {
+        let distance = path_lengths[start][other_index];
+        if !visited.contains(&other_index) && distance + 2 <= remaining {
             let mut new_visited = visited.clone();
-            new_visited.insert(String::from(start));
+            new_visited.insert(other_index);
 
             let sub_result = find_possible_combinations(
                 graph,
                 path_lengths,
-                other_name,
+                other_index,
                 new_visited,
                 remaining - distance - 1,
                 current_total + (distance + 1) * current_running,
-                current_running + graph.valves.get(other_name).unwrap().flow_rate,
+                current_running + graph.valves[other_index].flow_rate,
             );
             result = cmp::max(result, sub_result);
         }
@@ -257,38 +336,36 @@ fn find_possible_combinations(graph: &CaveGraph, path_lengths: &HashMap<String, 
     result
 }
 
-fn find_path_lengths(graph: &CaveGraph) -> HashMap<String, HashMap<String, u32>> {
-    let mut result: HashMap<String, HashMap<String, u32>> = HashMap::new();
+fn find_path_lengths(graph: &CaveGraph) -> Vec<Vec<u32>> {
+    let mut result = vec![vec![0; graph.valves.len()]; graph.valves.len()];
 
-    for valve in graph.valves.values().filter(|valve| valve.name == "AA" || valve.flow_rate > 0) {
-        let mut valve_map: HashMap<String, u32> = HashMap::new();
-        for other_valve in graph.valves.values().filter(|other_valve| valve.name != other_valve.name && other_valve.flow_rate > 0) {
-            let distance = find_shortest_path(graph, &valve.name, &other_valve.name);
-            valve_map.insert(other_valve.name.clone(), distance);
+    for valve in graph.valves.iter().filter(|valve| valve.name == "AA" || valve.flow_rate > 0) {
+        for other_valve in graph.valves.iter().filter(|other_valve| valve.index != other_valve.index && other_valve.flow_rate > 0) {
+            let distance = find_shortest_path(graph, valve.index, other_valve.index);
+            result[valve.index][other_valve.index] = distance;
         }
-        result.insert(valve.name.clone(), valve_map);
     }
 
     result
 }
 
-fn find_shortest_path(graph: &CaveGraph, a: &str, b: &str) -> u32 {
-    let mut queue: VecDeque<(&str, u32)> = VecDeque::new();
+fn find_shortest_path(graph: &CaveGraph, a: usize, b: usize) -> u32 {
+    let mut queue: VecDeque<(usize, u32)> = VecDeque::new();
     queue.push_back((a, 0));
 
-    let mut visited: HashSet<String> = HashSet::new();
-    visited.insert(String::from(a));
+    let mut visited: HashSet<usize> = HashSet::new();
+    visited.insert(a);
 
     while !queue.is_empty() {
-        let (name, distance) = queue.pop_front().unwrap();
+        let (index, distance) = queue.pop_front().unwrap();
 
-        for tunnel in &graph.valves.get(name).unwrap().tunnels {
+        for &tunnel in &graph.valves[index].tunnels {
             if tunnel == b {
                 return distance + 1;
             }
 
-            if !visited.contains(tunnel) {
-                visited.insert(String::from(tunnel));
+            if !visited.contains(&tunnel) {
+                visited.insert(tunnel);
                 queue.push_back((tunnel, distance + 1));
             }
         }
@@ -298,7 +375,9 @@ fn find_shortest_path(graph: &CaveGraph, a: &str, b: &str) -> u32 {
 }
 
 fn parse_input(input: &str) -> CaveGraph {
-    let valves: HashMap<_, _> = input.lines().map(|line| {
+    let mut graph = CaveGraph::new();
+
+    for line in input.lines() {
         let mut split = line.split(' ').skip(1);
         let name = split.next().expect("valve name");
         let name = String::from(name);
@@ -316,13 +395,12 @@ fn parse_input(input: &str) -> CaveGraph {
                 tunnel
             }
         })
-            .map(String::from)
             .collect();
-        (name.clone(), Valve { name, flow_rate, tunnels })
-    })
-        .collect();
 
-    CaveGraph { valves }
+        graph.add_valve(&name, flow_rate, &tunnels);
+    }
+
+    graph
 }
 
 fn main() {
