@@ -396,7 +396,14 @@ mod tests {
     const SAMPLE_INPUT: &str = include_str!("sample_input/sample16.txt");
 
     #[test]
-    fn test_sample_input() {
-        assert_eq!((1651, 1707), solve(SAMPLE_INPUT));
+    fn test_sample_input_part_1() {
+        let (solution1, _) = solve(SAMPLE_INPUT);
+        assert_eq!(1651, solution1);
+    }
+
+    #[test]
+    fn test_sample_input_part_2() {
+        let (_, solution2) = solve(SAMPLE_INPUT);
+        assert_eq!(1707, solution2);
     }
 }
