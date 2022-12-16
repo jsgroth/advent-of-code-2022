@@ -212,11 +212,13 @@ fn compute_max_possible(graph: &CaveGraph, path_lengths: &HashMap<String, HashMa
         total += (remaining - elephant_remaining_to_target) * graph.valves.get(elephant_target).unwrap().flow_rate;
     }
 
-    let unvisited_names: HashSet<_> = path_lengths.values()
-        .flat_map(|m| m.keys())
-        .cloned()
-        .filter(|name| !visited.contains(name))
-        .collect();
+    let unvisited_names: Vec<_> = graph.valves.values().filter_map(|valve| {
+        if valve.flow_rate > 0 && !visited.contains(&valve.name) {
+            Some(valve.name.clone())
+        } else {
+            None
+        }
+    }).collect();
 
     for name in &unvisited_names {
         if !visited.contains(name) {
