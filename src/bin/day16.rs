@@ -247,6 +247,7 @@ fn find_with_elephant(
             you_stopped: true,
             ..parameters
         };
+        
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
     } else if elephant_remaining_to_target == 0 && !elephant_stopped {
         let add_to_running = graph.valves[elephant_target].flow_rate;
@@ -260,6 +261,7 @@ fn find_with_elephant(
                     ..parameters.clone()
                 };
                 new_parameters.visited.insert(other_index);
+
                 result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
             }
         }
@@ -269,6 +271,7 @@ fn find_with_elephant(
             elephant_stopped: true,
             ..parameters
         };
+
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
     } else if your_remaining_to_target > 0 && (elephant_stopped || your_remaining_to_target <= elephant_remaining_to_target) {
         let new_parameters = ElephantFindParameters {
@@ -288,6 +291,7 @@ fn find_with_elephant(
             current_total: current_total + elephant_remaining_to_target * current_running,
             ..parameters
         };
+
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
     }
 
