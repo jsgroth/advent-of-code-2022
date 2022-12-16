@@ -225,6 +225,8 @@ fn find_with_elephant(
     let mut result = current_total + remaining * current_running;
 
     if your_remaining_to_target == 0 && !you_stopped {
+        // Recursively search all possible new targets for you, as well as the possibility where you stop here
+
         let add_to_running = graph.valves[your_target].flow_rate;
 
         for &other_index in &graph.valves_with_flow {
@@ -247,10 +249,13 @@ fn find_with_elephant(
             you_stopped: true,
             ..parameters
         };
-        
+
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
     } else if elephant_remaining_to_target == 0 && !elephant_stopped {
+        // Recursively search all possible new targets for the elephant, as well as the possibility where it stops here
+
         let add_to_running = graph.valves[elephant_target].flow_rate;
+
         for &other_index in &graph.valves_with_flow {
             let distance = path_lengths[elephant_target][other_index];
             if !visited.contains(&other_index) && distance + 2 <= remaining {
@@ -274,6 +279,8 @@ fn find_with_elephant(
 
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
     } else if your_remaining_to_target > 0 && (elephant_stopped || your_remaining_to_target <= elephant_remaining_to_target) {
+        // Advance time so that you reach your current target
+
         let new_parameters = ElephantFindParameters {
             your_remaining_to_target: 0,
             elephant_remaining_to_target: if !elephant_stopped { elephant_remaining_to_target - your_remaining_to_target } else { 0 },
@@ -284,6 +291,8 @@ fn find_with_elephant(
 
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
     } else if elephant_remaining_to_target > 0 && (you_stopped || elephant_remaining_to_target <= your_remaining_to_target) {
+        // Advance time so that the elephant reaches its current target
+
         let new_parameters = ElephantFindParameters {
             your_remaining_to_target: if !you_stopped { your_remaining_to_target - elephant_remaining_to_target } else { 0 },
             elephant_remaining_to_target: 0,
