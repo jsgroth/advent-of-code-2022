@@ -127,8 +127,6 @@ fn find_with_elephant(
     if your_remaining_to_target == 0 && !you_stopped {
         let add_to_running = graph.valves[your_target].flow_rate;
 
-        let mut moved = false;
-
         for &other_index in &graph.valves_with_flow {
             let distance = path_lengths[your_target][other_index];
             if !visited.contains(&other_index) && distance + 2 <= remaining {
@@ -151,34 +149,27 @@ fn find_with_elephant(
                     max_so_far,
                 );
                 result = cmp::max(result, sub_result);
-
-                moved = true;
             }
         }
 
-        if !moved {
-            let sub_result = find_with_elephant(
-                graph,
-                path_lengths,
-                your_target,
-                0,
-                elephant_target,
-                elephant_remaining_to_target,
-                visited,
-                remaining,
-                current_total,
-                current_running + add_to_running,
-                true,
-                elephant_stopped,
-                max_so_far,
-            );
-            result = cmp::max(result, sub_result);
-        }
+        let sub_result = find_with_elephant(
+            graph,
+            path_lengths,
+            your_target,
+            0,
+            elephant_target,
+            elephant_remaining_to_target,
+            visited,
+            remaining,
+            current_total,
+            current_running + add_to_running,
+            true,
+            elephant_stopped,
+            max_so_far,
+        );
+        result = cmp::max(result, sub_result);
     } else if elephant_remaining_to_target == 0 && !elephant_stopped {
         let add_to_running = graph.valves[elephant_target].flow_rate;
-
-        let mut moved = false;
-
         for &other_index in &graph.valves_with_flow {
             let distance = path_lengths[elephant_target][other_index];
             if !visited.contains(&other_index) && distance + 2 <= remaining {
@@ -201,29 +192,25 @@ fn find_with_elephant(
                     max_so_far,
                 );
                 result = cmp::max(result, sub_result);
-
-                moved = true;
             }
         }
 
-        if !moved {
-            let sub_result = find_with_elephant(
-                graph,
-                path_lengths,
-                your_target,
-                your_remaining_to_target,
-                elephant_target,
-                0,
-                visited,
-                remaining,
-                current_total,
-                current_running + add_to_running,
-                you_stopped,
-                true,
-                max_so_far,
-            );
-            result = cmp::max(result, sub_result);
-        }
+        let sub_result = find_with_elephant(
+            graph,
+            path_lengths,
+            your_target,
+            your_remaining_to_target,
+            elephant_target,
+            0,
+            visited,
+            remaining,
+            current_total,
+            current_running + add_to_running,
+            you_stopped,
+            true,
+            max_so_far,
+        );
+        result = cmp::max(result, sub_result);
     } else if your_remaining_to_target > 0 && (elephant_stopped || your_remaining_to_target <= elephant_remaining_to_target) {
         let new_elephant_remaining = if !elephant_stopped { elephant_remaining_to_target - your_remaining_to_target } else { 0 };
         let sub_result = find_with_elephant(
