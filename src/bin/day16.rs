@@ -131,7 +131,15 @@ fn find_shortest_path(graph: &CaveGraph, a: usize, b: usize) -> u32 {
     panic!("no path found from {a} to {b}");
 }
 
-fn find_best_path(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, start: usize, visited: HashSet<usize>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
+fn find_best_path(
+    graph: &CaveGraph,
+    path_lengths: &Vec<Vec<u32>>,
+    start: usize,
+    visited: HashSet<usize>,
+    remaining: u32,
+    current_total: u32,
+    current_running: u32,
+) -> u32 {
     let mut result = current_total + remaining * current_running;
 
     for &other_index in &graph.valves_with_flow {
