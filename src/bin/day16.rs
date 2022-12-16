@@ -69,7 +69,7 @@ fn solve(input: &str) -> (u32, u32) {
     let path_lengths = find_path_lengths(&graph);
 
     let start_index = *graph.name_to_index.get("AA").unwrap();
-    let part_1_solution = find_possible_combinations(&graph, &path_lengths, start_index, HashSet::new(), 30, 0, 0);
+    let part_1_solution = find_best_path(&graph, &path_lengths, start_index, HashSet::new(), 30, 0, 0);
 
     let part_2_solution = cmp::max(part_1_solution, find_with_elephant(
         &graph,
@@ -119,6 +119,7 @@ fn find_with_elephant(
         you_stopped,
         elephant_stopped
     ) {
+        // Break early, the upper bound for this path is lower than the best we've seen so far
         return u32::MIN;
     }
 
@@ -254,6 +255,7 @@ fn find_with_elephant(
     result
 }
 
+// Determine an upper bound for the max possible result from this path
 fn compute_max_possible(
     graph: &CaveGraph,
     path_lengths: &Vec<Vec<u32>>,
@@ -298,7 +300,7 @@ fn compute_max_possible(
     total
 }
 
-fn find_possible_combinations(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, start: usize, visited: HashSet<usize>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
+fn find_best_path(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, start: usize, visited: HashSet<usize>, remaining: u32, current_total: u32, current_running: u32) -> u32 {
     let mut result = current_total + remaining * current_running;
 
     for &other_index in &graph.valves_with_flow {
@@ -307,7 +309,7 @@ fn find_possible_combinations(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, s
             let mut new_visited = visited.clone();
             new_visited.insert(other_index);
 
-            let sub_result = find_possible_combinations(
+            let sub_result = find_best_path(
                 graph,
                 path_lengths,
                 other_index,
@@ -323,6 +325,8 @@ fn find_possible_combinations(graph: &CaveGraph, path_lengths: &Vec<Vec<u32>>, s
     result
 }
 
+// Find the distance between each pair of nodes with flow, as well as the distance from the
+// starting node to every node with flow
 fn find_path_lengths(graph: &CaveGraph) -> Vec<Vec<u32>> {
     let mut result = vec![vec![0; graph.valves.len()]; graph.valves.len()];
 
@@ -336,6 +340,7 @@ fn find_path_lengths(graph: &CaveGraph) -> Vec<Vec<u32>> {
     result
 }
 
+// Simple BFS to find the length of the shortest path between two nodes
 fn find_shortest_path(graph: &CaveGraph, a: usize, b: usize) -> u32 {
     let mut queue: VecDeque<(usize, u32)> = VecDeque::new();
     queue.push_back((a, 0));
