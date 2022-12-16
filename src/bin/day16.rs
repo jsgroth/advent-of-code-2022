@@ -98,20 +98,25 @@ impl<'a> ElephantFindParameters<'a> {
     }
 }
 
+const START_VALVE_NAME: &str = "AA";
+
+const TURN_LIMIT_WITHOUT_ELEPHANT: u32 = 30;
+const TURN_LIMIT_WITH_ELEPHANT: u32 = 26;
+
 fn solve(input: &str) -> (u32, u32) {
     let graph = parse_input(input);
 
-    let path_lengths = find_path_lengths(&graph);
+    let path_lengths = find_path_lengths(&graph, START_VALVE_NAME);
 
-    let start_index = *graph.name_to_index.get("AA").unwrap();
-    let part_1_solution = find_best_path(&graph, &path_lengths, start_index, HashSet::new(), 30, 0, 0);
+    let start_index = *graph.name_to_index.get(START_VALVE_NAME).unwrap();
+    let part_1_solution = find_best_path(&graph, &path_lengths, start_index, HashSet::new(), TURN_LIMIT_WITHOUT_ELEPHANT, 0, 0);
 
     let elephant_find_parameters = ElephantFindParameters::new(
         &graph,
         &path_lengths,
         start_index,
         start_index,
-        26,
+        TURN_LIMIT_WITH_ELEPHANT,
     );
     let part_2_solution = cmp::max(part_1_solution, find_with_elephant(elephant_find_parameters, &mut 0));
 
@@ -120,10 +125,10 @@ fn solve(input: &str) -> (u32, u32) {
 
 // Find the distance between each pair of nodes with flow, as well as the distance from the
 // starting node to every node with flow
-fn find_path_lengths(graph: &CaveGraph) -> Vec<Vec<u32>> {
+fn find_path_lengths(graph: &CaveGraph, start_node: &str) -> Vec<Vec<u32>> {
     let mut result = vec![vec![0; graph.valves.len()]; graph.valves.len()];
 
-    for valve in graph.valves.iter().filter(|valve| valve.name == "AA" || valve.flow_rate > 0) {
+    for valve in graph.valves.iter().filter(|valve| valve.name == start_node || valve.flow_rate > 0) {
         for other_valve in graph.valves.iter().filter(|other_valve| valve.index != other_valve.index && other_valve.flow_rate > 0) {
             let distance = find_shortest_path(graph, valve.index, other_valve.index);
             result[valve.index][other_valve.index] = distance;
