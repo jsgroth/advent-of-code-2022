@@ -126,15 +126,15 @@ impl TetrisChamber {
             .collect();
         let lowest_max = max_per_col.into_iter().min().unwrap();
 
-        let mut result: Vec<Point> = Vec::new();
-        for (x, col) in self.occupied_points.iter().enumerate() {
-            for &y in col.iter().rev() {
-                if y < lowest_max {
-                    break;
-                }
-                result.push(Point::new(x as i64, y - lowest_max));
-            }
-        }
+        let mut result: Vec<Point> = self.occupied_points.iter().enumerate()
+            .flat_map(|(x, col)| {
+                let x = x as i64;
+                col.iter().copied()
+                    .take_while(|&y| y >= lowest_max)
+                    .map(|y| Point::new(x, y - lowest_max))
+                    .collect::<Vec<_>>()
+            })
+            .collect();
 
         result.sort();
         result
