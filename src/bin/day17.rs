@@ -130,8 +130,13 @@ impl TetrisChamber {
             .flat_map(|(x, col)| {
                 let x = x as i64;
                 col.iter().rev().copied()
-                    .take_while(|&y| y >= lowest_max)
-                    .map(|y| Point::new(x, y - lowest_max))
+                    .map_while(|y| {
+                        if y >= lowest_max {
+                            Some(Point::new(x, y - lowest_max))
+                        } else {
+                            None
+                        }
+                    })
                     .collect::<Vec<_>>()
             })
             .collect();
