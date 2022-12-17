@@ -126,7 +126,7 @@ impl TetrisChamber {
             .collect();
         let lowest_max = max_per_col.into_iter().min().unwrap();
 
-        let mut result: Vec<Point> = self.occupied_points.iter().enumerate()
+        let mut result: Vec<_> = self.occupied_points.iter().enumerate()
             .flat_map(|(x, col)| {
                 let x = x as i64;
                 col.iter().rev().copied()
