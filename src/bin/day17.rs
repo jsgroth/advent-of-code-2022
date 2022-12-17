@@ -130,10 +130,6 @@ fn solve_part_2(input: &str) -> i64 {
     let mut occupied_points: HashSet<Point> = HashSet::new();
 
     let mut repitition_detection_map: HashMap<RepititionDetectionKey, (usize, i64)> = HashMap::new();
-    repitition_detection_map.insert(
-        RepititionDetectionKey { highest_points: Vec::new(), jet_stream_index: 0, tetronimo_type_index: 0},
-        (0, 0)
-    );
 
     for i in 1.. {
         let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
