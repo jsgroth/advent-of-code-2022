@@ -129,7 +129,7 @@ impl TetrisChamber {
         let mut result: Vec<Point> = self.occupied_points.iter().enumerate()
             .flat_map(|(x, col)| {
                 let x = x as i64;
-                col.iter().copied()
+                col.iter().rev().copied()
                     .take_while(|&y| y >= lowest_max)
                     .map(|y| Point::new(x, y - lowest_max))
                     .collect::<Vec<_>>()
