@@ -4,7 +4,7 @@
 use std::cmp;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
 struct Point {
     x: i64,
     y: i64,
@@ -19,6 +19,12 @@ impl Point {
 #[derive(Debug, Clone)]
 struct Tetronimo {
     points: Vec<Point>,
+}
+
+impl Tetronimo {
+    fn highest_point_y(&self) -> Option<i64> {
+        self.points.iter().map(|p| p.y).max()
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -80,53 +86,35 @@ impl TetronimoType {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+struct RepititionDetectionKey {
+    highest_points: Vec<Point>,
+    jet_stream_index: usize,
+    tetronimo_type_index: usize,
+}
+
 const CHAMBER_WIDTH: i64 = 7;
 
 const PART_1_TO_DROP: usize = 2022;
 
+const PART_2_TO_DROP: i64 = 1_000_000_000_000;
+
 fn solve(input: &str) -> i64 {
     let line = input.lines().next().expect("input should not be empty");
-    let mut jet_iter = line.chars().map(|c| {
-        if c == '<' {
-            -1
-        } else if c == '>' {
-            1
-        } else {
-            panic!("unexpected char in jet stream: {c}");
-        }
-    }).cycle();
+    let mut jet_iter = repeating_jet_iterator(line);
 
-    let mut tetronimo_type_iter = vec![
-        TetronimoType::Minus,
-        TetronimoType::Plus,
-        TetronimoType::BackwardsL,
-        TetronimoType::Line,
-        TetronimoType::Square,
-    ].into_iter().cycle();
+    let mut tetronimo_type_iter = repeating_tetronimo_type_iterator();
 
     let mut tower_height = 0;
     let mut occupied_points: HashSet<Point> = HashSet::new();
 
     for _ in 0..PART_1_TO_DROP {
-        let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 3);
+        let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
 
-        loop {
-            let jet_direction = jet_iter.next().unwrap();
-            tetronimo = try_move(&tetronimo, &occupied_points, jet_direction, 0).unwrap_or(tetronimo);
-
-            match try_move(&tetronimo, &occupied_points, 0, -1) {
-                Some(moved_tetronimo) => {
-                    tetronimo = moved_tetronimo;
-                }
-                None => break,
-            }
-        }
+        tetronimo = drop_tetronimo(tetronimo, &occupied_points, &mut jet_iter);
 
         occupied_points.extend(tetronimo.points.clone());
-        tower_height = cmp::max(tower_height, tetronimo.points.iter().map(|p| p.y).max().unwrap() + 1);
-
-        // println!("height is {tower_height} at iteration {i}");
-        // println!("tetronimo position: {tetronimo:?}");
+        tower_height = cmp::max(tower_height, tetronimo.highest_point_y().unwrap());
     }
 
     tower_height
@@ -134,72 +122,51 @@ fn solve(input: &str) -> i64 {
 
 fn solve_part_2(input: &str) -> i64 {
     let line = input.lines().next().expect("input should not be empty");
-    let mut jet_iter = line.chars().map(|c| {
-        if c == '<' {
-            -1
-        } else if c == '>' {
-            1
-        } else {
-            panic!("unexpected char in jet stream: {c}");
-        }
-    }).enumerate().cycle().peekable();
+    let mut jet_iter = repeating_jet_iterator(line).peekable();
 
-    let mut tetronimo_type_iter = vec![
-        TetronimoType::Minus,
-        TetronimoType::Plus,
-        TetronimoType::BackwardsL,
-        TetronimoType::Line,
-        TetronimoType::Square,
-    ].into_iter().cycle();
+    let mut tetronimo_type_iter = repeating_tetronimo_type_iterator();
 
     let mut tower_height = 0;
     let mut occupied_points: HashSet<Point> = HashSet::new();
 
-    let mut seen_max_heights: HashMap<Vec<i64>, (i64, usize, usize)> = HashMap::new();
-    seen_max_heights.insert(vec![0; 7], (0, 0, 0));
+    let mut repitition_detection_map: HashMap<RepititionDetectionKey, (usize, i64)> = HashMap::new();
+    repitition_detection_map.insert(
+        RepititionDetectionKey { highest_points: Vec::new(), jet_stream_index: 0, tetronimo_type_index: 0},
+        (0, 0)
+    );
 
     for i in 1.. {
-        let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 3);
+        let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
 
-        loop {
-            let (_, jet_direction) = jet_iter.next().unwrap();
-            tetronimo = try_move(&tetronimo, &occupied_points, jet_direction, 0).unwrap_or(tetronimo);
-
-            match try_move(&tetronimo, &occupied_points, 0, -1) {
-                Some(moved_tetronimo) => {
-                    tetronimo = moved_tetronimo;
-                }
-                None => break,
-            }
-        }
+        tetronimo = drop_tetronimo(tetronimo, &occupied_points, &mut jet_iter);
 
         occupied_points.extend(tetronimo.points.clone());
-        tower_height = cmp::max(tower_height, tetronimo.points.iter().map(|p| p.y).max().unwrap() + 1);
+        tower_height = cmp::max(tower_height, tetronimo.highest_point_y().unwrap());
 
-        let normalized_max_heights = normalize_max_heights(&occupied_points);
-        if i % 5 == 0 {
-            if let Some(&(earlier_height, earlier_iteration, earlier_jet_index)) = seen_max_heights.get(&normalized_max_heights) {
-                let jet_index = jet_iter.peek().unwrap().0;
-                if jet_index == earlier_jet_index {
-                    let i = i as i64;
-                    let earlier_iteration = earlier_iteration as i64;
-                    let partial = (1000000000000 - i) / (i - earlier_iteration);
-                    let rem = (1000000000000 - i) % (i - earlier_iteration);
-                    if rem == 0 {
-                        return tower_height + partial * (tower_height - earlier_height);
-                    }
-                }
+        let highest_points = determine_highest_points(&occupied_points);
+        let &(jet_stream_index, _) = jet_iter.peek().unwrap();
+        let key = RepititionDetectionKey { highest_points, jet_stream_index, tetronimo_type_index: i % 5 };
+        if let Some(&(earlier_iteration, earlier_height)) = repitition_detection_map.get(&key) {
+            let i = i as i64;
+            let earlier_iteration = earlier_iteration as i64;
+
+            let div = (PART_2_TO_DROP - i) / (i - earlier_iteration);
+            let rem = (PART_2_TO_DROP - i) % (i - earlier_iteration);
+            if rem == 0 {
+                return tower_height + div * (tower_height - earlier_height);
             }
-
-            seen_max_heights.insert(normalized_max_heights, (tower_height, i, jet_iter.peek().unwrap().0));
         }
+
+        repitition_detection_map.insert(key, (i, tower_height));
     }
 
-    0
+    panic!("no solution found");
 }
 
-fn normalize_max_heights(occupied_points: &HashSet<Point>) -> Vec<i64> {
-    let mut max_per_col = vec![-1; 7];
+// Find the column with the lowest max height, then return all points at or higher than that point
+// with their heights normalized to that lowest max
+fn determine_highest_points(occupied_points: &HashSet<Point>) -> Vec<Point> {
+    let mut max_per_col = vec![0; 7];
 
     for point in occupied_points {
         max_per_col[point.x as usize] = cmp::max(max_per_col[point.x as usize], point.y);
@@ -207,7 +174,33 @@ fn normalize_max_heights(occupied_points: &HashSet<Point>) -> Vec<i64> {
 
     let lowest_max = *max_per_col.iter().min().unwrap();
 
-    max_per_col.into_iter().map(|i| i - lowest_max).collect()
+    let mut normalized_points: Vec<_> = occupied_points.iter().filter_map(|p| {
+        if p.y >= lowest_max {
+            Some(Point::new(p.x, p.y - lowest_max))
+        } else {
+            None
+        }
+    }).collect();
+    normalized_points.sort();
+    normalized_points
+}
+
+fn drop_tetronimo(tetronimo: Tetronimo, occupied_points: &HashSet<Point>, jet_iter: &mut impl Iterator<Item = (usize, i64)>) -> Tetronimo {
+    let mut tetronimo = tetronimo;
+
+    loop {
+        let (_, jet_direction) = jet_iter.next().unwrap();
+        tetronimo = try_move(&tetronimo, &occupied_points, jet_direction, 0).unwrap_or(tetronimo);
+
+        match try_move(&tetronimo, &occupied_points, 0, -1) {
+            Some(moved_tetronimo) => {
+                tetronimo = moved_tetronimo;
+            }
+            None => break,
+        }
+    }
+
+    tetronimo
 }
 
 fn try_move(tetronimo: &Tetronimo, occupied_points: &HashSet<Point>, dx: i64, dy: i64) -> Option<Tetronimo> {
@@ -216,13 +209,33 @@ fn try_move(tetronimo: &Tetronimo, occupied_points: &HashSet<Point>, dx: i64, dy
     for point in &tetronimo.points {
         let new_point = Point::new(point.x + dx, point.y + dy);
 
-        if new_point.x < 0 || new_point.x >= CHAMBER_WIDTH || new_point.y < 0 || occupied_points.contains(&new_point) {
+        if new_point.x < 0 || new_point.x >= CHAMBER_WIDTH || new_point.y <= 0 || occupied_points.contains(&new_point) {
             return None;
         }
         new_points.push(new_point);
     }
 
     Some(Tetronimo { points: new_points })
+}
+
+fn repeating_jet_iterator(line: &str) -> impl Iterator<Item = (usize, i64)> + '_ {
+    line.chars().map(|c| {
+        match c {
+            '<' => -1,
+            '>' => 1,
+            _ => panic!("unexpected character in jet stream: {c}"),
+        }
+    }).enumerate().cycle()
+}
+
+fn repeating_tetronimo_type_iterator() -> impl Iterator<Item = TetronimoType> {
+    vec![
+        TetronimoType::Minus,
+        TetronimoType::Plus,
+        TetronimoType::BackwardsL,
+        TetronimoType::Line,
+        TetronimoType::Square,
+    ].into_iter().cycle()
 }
 
 fn main() {
