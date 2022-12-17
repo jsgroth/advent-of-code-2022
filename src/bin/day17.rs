@@ -128,7 +128,7 @@ impl TetrisChamber {
 
         let mut result: Vec<Point> = Vec::new();
         for (x, col) in self.occupied_points.iter().enumerate() {
-            for &y in col {
+            for &y in col.iter().rev() {
                 if y < lowest_max {
                     break;
                 }
