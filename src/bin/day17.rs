@@ -165,7 +165,8 @@ fn determine_highest_points(occupied_points: &HashSet<Point>) -> Vec<Point> {
     let mut max_per_col = vec![0; CHAMBER_WIDTH as usize];
 
     for point in occupied_points {
-        max_per_col[point.x as usize] = cmp::max(max_per_col[point.x as usize], point.y);
+        let x = point.x as usize;
+        max_per_col[x] = cmp::max(max_per_col[x], point.y);
     }
 
     let lowest_max = *max_per_col.iter().min().unwrap();
