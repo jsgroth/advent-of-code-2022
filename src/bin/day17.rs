@@ -169,7 +169,7 @@ fn determine_highest_points(occupied_points: &HashSet<Point>) -> Vec<Point> {
         max_per_col[x] = cmp::max(max_per_col[x], point.y);
     }
 
-    let lowest_max = *max_per_col.iter().min().unwrap();
+    let lowest_max = max_per_col.into_iter().min().unwrap();
 
     let mut normalized_points: Vec<_> = occupied_points.iter().filter_map(|p| {
         if p.y >= lowest_max {
