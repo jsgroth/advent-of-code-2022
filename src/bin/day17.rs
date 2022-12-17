@@ -112,7 +112,7 @@ impl TetrisChamber {
         col.insert(i, p.y);
     }
 
-    fn extend(&mut self, points: &Vec<Point>) {
+    fn extend<'a>(&mut self, points: impl IntoIterator<Item = &'a Point>) {
         for p in points {
             self.insert(p);
         }
