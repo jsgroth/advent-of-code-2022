@@ -162,7 +162,7 @@ fn solve_part_2(input: &str) -> i64 {
 // Find the column with the lowest max height, then return all points at or higher than that point
 // with their heights normalized to that lowest max
 fn determine_highest_points(occupied_points: &HashSet<Point>) -> Vec<Point> {
-    let mut max_per_col = vec![0; 7];
+    let mut max_per_col = vec![0; CHAMBER_WIDTH as usize];
 
     for point in occupied_points {
         max_per_col[point.x as usize] = cmp::max(max_per_col[point.x as usize], point.y);
