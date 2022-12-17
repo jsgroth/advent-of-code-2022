@@ -2,7 +2,7 @@
 //! https://adventofcode.com/2022/day/17
 
 use std::cmp;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
 struct Point {
@@ -86,6 +86,61 @@ impl TetronimoType {
     }
 }
 
+#[derive(Debug)]
+struct TetrisChamber {
+    // Stores the occupied y coordinates in each column, in sorted order
+    occupied_points: Vec<Vec<i64>>,
+}
+
+impl TetrisChamber {
+    fn new() -> Self {
+        Self {
+            occupied_points: vec![Vec::new(); CHAMBER_WIDTH as usize],
+        }
+    }
+
+    fn contains(&self, p: &Point) -> bool {
+        self.occupied_points[p.x as usize].binary_search(&p.y).is_ok()
+    }
+
+    fn insert(&mut self, p: &Point) {
+        let col = &mut self.occupied_points[p.x as usize];
+        let mut i = col.len();
+        while i > 0 && col[i - 1] > p.y {
+            i -= 1;
+        }
+        col.insert(i, p.y);
+    }
+
+    fn extend(&mut self, points: &Vec<Point>) {
+        for p in points {
+            self.insert(p);
+        }
+    }
+
+    // Find the column with the lowest max height, then return all points at or higher than that
+    // height with their heights normalized to the lowest max
+    fn determine_highest_points(&self) -> Vec<Point> {
+        let max_per_col: Vec<_> = self.occupied_points.iter()
+            .map(|col| col.last().copied().unwrap_or(0))
+            .collect();
+        let lowest_max = max_per_col.into_iter().min().unwrap();
+
+        let mut result: Vec<Point> = Vec::new();
+        for (x, col) in self.occupied_points.iter().enumerate() {
+            for &y in col {
+                if y < lowest_max {
+                    break;
+                }
+                result.push(Point::new(x as i64, y - lowest_max));
+            }
+        }
+
+        result.sort();
+        result
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct RepititionDetectionKey {
     highest_points: Vec<Point>,
@@ -106,14 +161,14 @@ fn solve(input: &str) -> i64 {
     let mut tetronimo_type_iter = repeating_tetronimo_type_iterator();
 
     let mut tower_height = 0;
-    let mut occupied_points: HashSet<Point> = HashSet::new();
+    let mut tetris_chamber = TetrisChamber::new();
 
     for _ in 0..PART_1_TO_DROP {
         let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
 
-        tetronimo = drop_tetronimo(tetronimo, &occupied_points, &mut jet_iter);
+        tetronimo = drop_tetronimo(tetronimo, &tetris_chamber, &mut jet_iter);
 
-        occupied_points.extend(tetronimo.points.clone());
+        tetris_chamber.extend(&tetronimo.points);
         tower_height = cmp::max(tower_height, tetronimo.highest_point_y().unwrap());
     }
 
@@ -127,19 +182,19 @@ fn solve_part_2(input: &str) -> i64 {
     let mut tetronimo_type_iter = repeating_tetronimo_type_iterator();
 
     let mut tower_height = 0;
-    let mut occupied_points: HashSet<Point> = HashSet::new();
+    let mut tetris_chamber = TetrisChamber::new();
 
     let mut repitition_detection_map: HashMap<RepititionDetectionKey, (usize, i64)> = HashMap::new();
 
     for i in 1.. {
         let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
 
-        tetronimo = drop_tetronimo(tetronimo, &occupied_points, &mut jet_iter);
+        tetronimo = drop_tetronimo(tetronimo, &tetris_chamber, &mut jet_iter);
 
-        occupied_points.extend(tetronimo.points.clone());
+        tetris_chamber.extend(&tetronimo.points);
         tower_height = cmp::max(tower_height, tetronimo.highest_point_y().unwrap());
 
-        let highest_points = determine_highest_points(&occupied_points);
+        let highest_points = tetris_chamber.determine_highest_points();
         let &(jet_stream_index, _) = jet_iter.peek().unwrap();
         let key = RepititionDetectionKey { highest_points, jet_stream_index, tetronimo_type_index: i % 5 };
         if let Some(&(earlier_iteration, earlier_height)) = repitition_detection_map.get(&key) {
@@ -159,37 +214,14 @@ fn solve_part_2(input: &str) -> i64 {
     panic!("no solution found");
 }
 
-// Find the column with the lowest max height, then return all points at or higher than that point
-// with their heights normalized to that lowest max
-fn determine_highest_points(occupied_points: &HashSet<Point>) -> Vec<Point> {
-    let mut max_per_col = vec![0; CHAMBER_WIDTH as usize];
-
-    for point in occupied_points {
-        let x = point.x as usize;
-        max_per_col[x] = cmp::max(max_per_col[x], point.y);
-    }
-
-    let lowest_max = max_per_col.into_iter().min().unwrap();
-
-    let mut normalized_points: Vec<_> = occupied_points.iter().filter_map(|p| {
-        if p.y >= lowest_max {
-            Some(Point::new(p.x, p.y - lowest_max))
-        } else {
-            None
-        }
-    }).collect();
-    normalized_points.sort();
-    normalized_points
-}
-
-fn drop_tetronimo(tetronimo: Tetronimo, occupied_points: &HashSet<Point>, jet_iter: &mut impl Iterator<Item = (usize, i64)>) -> Tetronimo {
+fn drop_tetronimo(tetronimo: Tetronimo, tetris_chamber: &TetrisChamber, jet_iter: &mut impl Iterator<Item = (usize, i64)>) -> Tetronimo {
     let mut tetronimo = tetronimo;
 
     loop {
         let (_, jet_direction) = jet_iter.next().unwrap();
-        tetronimo = try_move(&tetronimo, &occupied_points, jet_direction, 0).unwrap_or(tetronimo);
+        tetronimo = try_move(&tetronimo, tetris_chamber, jet_direction, 0).unwrap_or(tetronimo);
 
-        match try_move(&tetronimo, &occupied_points, 0, -1) {
+        match try_move(&tetronimo, tetris_chamber, 0, -1) {
             Some(moved_tetronimo) => {
                 tetronimo = moved_tetronimo;
             }
@@ -200,13 +232,13 @@ fn drop_tetronimo(tetronimo: Tetronimo, occupied_points: &HashSet<Point>, jet_it
     tetronimo
 }
 
-fn try_move(tetronimo: &Tetronimo, occupied_points: &HashSet<Point>, dx: i64, dy: i64) -> Option<Tetronimo> {
+fn try_move(tetronimo: &Tetronimo, tetris_chamber: &TetrisChamber, dx: i64, dy: i64) -> Option<Tetronimo> {
     let mut new_points = Vec::with_capacity(tetronimo.points.len());
 
     for point in &tetronimo.points {
         let new_point = Point::new(point.x + dx, point.y + dy);
 
-        if new_point.x < 0 || new_point.x >= CHAMBER_WIDTH || new_point.y <= 0 || occupied_points.contains(&new_point) {
+        if new_point.x < 0 || new_point.x >= CHAMBER_WIDTH || new_point.y <= 0 || tetris_chamber.contains(&new_point) {
             return None;
         }
         new_points.push(new_point);
