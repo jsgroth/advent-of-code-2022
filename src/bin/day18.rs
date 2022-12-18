@@ -41,21 +41,17 @@ impl<T: Copy + Default> Shifted3dGrid<T> {
         }
     }
 
-    fn in_bounds(&self, x: i32, y: i32, z: i32) -> bool {
+    fn get(&self, x: i32, y: i32, z: i32) -> Option<T> {
         let x = x + self.x_shift;
         let y = y + self.y_shift;
         let z = z + self.z_shift;
 
-        x >= 0 && y >= 0 && z >= 0 &&
-            x < self.grid.len() as i32 && y < self.grid[0].len() as i32 && z < self.grid[0][0].len() as i32
-    }
-
-    fn get(&self, x: i32, y: i32, z: i32) -> Option<T> {
-        if self.in_bounds(x, y, z) {
-            let x = (x + self.x_shift) as usize;
-            let y = (y + self.y_shift) as usize;
-            let z = (z + self.z_shift) as usize;
-            Some(self.grid[x][y][z])
+        if x >= 0 && y >= 0 && z >= 0 &&
+            x < self.grid.len() as i32 &&
+            y < self.grid[0].len() as i32 &&
+            z < self.grid[0][0].len() as i32
+        {
+            Some(self.grid[x as usize][y as usize][z as usize])
         } else {
             None
         }
