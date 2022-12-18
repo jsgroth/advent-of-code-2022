@@ -91,12 +91,12 @@ fn solve_part_2(input: &str) -> usize {
     let (min_x, min_y, min_z) = get_minimums(&cubes);
     let (max_x, max_y, max_z) = get_maximums(&cubes);
 
-    let mut shifted_grid = Shifted3dGrid::new(min_x, max_x, min_y, max_y, min_z, max_z);
-    floodfill_3d(&mut shifted_grid, &cubes_set, Cube::new(min_x - 1, min_y - 1, min_z - 1));
+    let mut water_grid = Shifted3dGrid::new(min_x, max_x, min_y, max_y, min_z, max_z);
+    floodfill_3d(&mut water_grid, &cubes_set, Cube::new(min_x - 1, min_y - 1, min_z - 1));
 
     cubes.iter().map(|cube| {
         DIRECTIONS.iter().filter(|&(dx, dy, dz)| {
-            shifted_grid.get(cube.x + dx, cube.y + dy, cube.z + dz) == Some(true)
+            water_grid.get(cube.x + dx, cube.y + dy, cube.z + dz) == Some(true)
         }).count()
     }).sum()
 }
