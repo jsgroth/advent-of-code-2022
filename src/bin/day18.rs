@@ -112,7 +112,7 @@ fn floodfill_3d(shifted_grid: &mut Shifted3dGrid<bool>, cubes: &HashSet<Cube>, s
             let new_cube = Cube::new(cube.x + dx, cube.y + dy, cube.z + dz);
             if !cubes.contains(&new_cube) && shifted_grid.get(new_cube.x, new_cube.y, new_cube.z) == Some(false) {
                 shifted_grid.set(new_cube.x, new_cube.y, new_cube.z, true);
-                queue.push_back(new_cube)
+                queue.push_back(new_cube);
             }
         }
     }
