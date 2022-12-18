@@ -76,15 +76,11 @@ fn solve(input: &str) -> usize {
 
     let cubes_set: HashSet<_> = cubes.iter().copied().collect();
 
-    cubes.iter().fold(0, |acc, cube| {
-        let mut surface_area = 0;
-        for (dx, dy, dz) in DIRECTIONS {
-            if !cubes_set.contains(&Cube::new(cube.x + dx, cube.y + dy, cube.z + dz)) {
-                surface_area += 1;
-            }
-        }
-        acc + surface_area
-    })
+    cubes.iter().map(|cube| {
+        DIRECTIONS.iter().filter(|&(dx, dy, dz)| {
+            !cubes_set.contains(&Cube::new(cube.x + dx, cube.y + dy, cube.z + dz))
+        }).count()
+    }).sum()
 }
 
 fn solve_part_2(input: &str) -> usize {
@@ -98,15 +94,11 @@ fn solve_part_2(input: &str) -> usize {
     let mut shifted_grid = Shifted3dGrid::new(min_x, max_x, min_y, max_y, min_z, max_z);
     floodfill_3d(&mut shifted_grid, &cubes_set, Cube::new(min_x - 1, min_y - 1, min_z - 1));
 
-    cubes.iter().fold(0, |acc, cube| {
-        let mut surface_area = 0;
-        for (dx, dy, dz) in DIRECTIONS {
-            if shifted_grid.get(cube.x + dx, cube.y + dy, cube.z + dz) == Some(true) {
-                surface_area += 1;
-            }
-        }
-        acc + surface_area
-    })
+    cubes.iter().map(|cube| {
+        DIRECTIONS.iter().filter(|&(dx, dy, dz)| {
+            shifted_grid.get(cube.x + dx, cube.y + dy, cube.z + dz) == Some(true)
+        }).count()
+    }).sum()
 }
 
 fn floodfill_3d(shifted_grid: &mut Shifted3dGrid<bool>, cubes: &HashSet<Cube>, start: Cube) {
