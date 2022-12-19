@@ -36,26 +36,23 @@ impl Directory {
         }
     }
 
-    // Fold over the total size of every node in the directory tree and return (total size, fold result)
-    fn total_size_fold<T, F>(&self, initial_state: T, f: F) -> (u32, T)
-    where
-        F: Copy + Fn(T, u32) -> T,
-    {
+    fn get_all_total_sizes(&self) -> Vec<u32> {
+        let mut result = Vec::new();
+        self.get_all_total_sizes_inner(&mut result);
+        result
+    }
+
+    fn get_all_total_sizes_inner(&self, output: &mut Vec<u32>) -> u32 {
         let files_size: u32 = self.file_sizes.iter().sum();
 
         let mut directories_size = 0;
-        let mut state = initial_state;
         for d in self.subdirectories.values() {
-            let (total_size, sub_dir_state) = d.borrow().total_size_fold(state, f);
-
-            directories_size += total_size;
-            state = sub_dir_state;
+            directories_size += d.borrow().get_all_total_sizes_inner(output);
         }
 
         let total_size = files_size + directories_size;
-        state = f(state, total_size);
-
-        (total_size, state)
+        output.push(total_size);
+        total_size
     }
 }
 
@@ -67,23 +64,20 @@ const PART_2_TARGET_FREE_SPACE: u32 = 30000000;
 fn solve(input: &str) -> (u32, u32) {
     let root_dir = parse_input(input);
 
-    let (root_dir_total_size, solution1) = root_dir.borrow().total_size_fold(0, |acc, total_size| {
-        if total_size <= PART_1_MAX_DIRECTORY_SIZE {
-            acc + total_size
-        } else {
-            acc
-        }
-    });
+    let total_sizes = root_dir.borrow().get_all_total_sizes();
+    let solution1 = total_sizes.iter().copied()
+        .filter(|&size| size <= PART_1_MAX_DIRECTORY_SIZE)
+        .sum();
+
+    let root_dir_total_size = total_sizes.last().unwrap();
 
     let target_space = PART_2_DISK_SIZE - PART_2_TARGET_FREE_SPACE;
-    let (_, solution2) = root_dir.borrow().total_size_fold(u32::MAX, |acc, total_size| {
-        let new_space = root_dir_total_size - total_size;
-        if new_space <= target_space && total_size < acc {
-            total_size
-        } else {
-            acc
-        }
-    });
+    let solution2 = total_sizes.iter().copied()
+        .filter(|&size| {
+           root_dir_total_size - size <= target_space
+        })
+        .min()
+        .unwrap();
 
     (solution1, solution2)
 }
