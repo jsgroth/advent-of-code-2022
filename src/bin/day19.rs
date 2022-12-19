@@ -188,7 +188,9 @@ fn search(
 }
 
 // Estimate the max possible future geode from this state by keeping track of a separate ore pool
-// for each type of robot construction and having the ore robots add to every ore pool
+// for each type of robot construction and having the ore robots add to every ore pool. This
+// estimation also allows building multiple robots per minute as long as the robots are different
+// types.
 fn estimate_max_possible(blueprint: &Blueprint, state: &SearchState) -> u32 {
     let &SearchState {
         ore,
