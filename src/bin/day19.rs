@@ -49,7 +49,7 @@ fn solve(input: &str) -> u32 {
     let blueprints = parse_input(input);
 
     blueprints.into_iter().enumerate().map(|(i, blueprint)| {
-        find_max_for_blueprint(&blueprint, 24) * ((i + 1) as u32);
+        find_max_for_blueprint(&blueprint, 24) * ((i + 1) as u32)
     })
         .sum()
 }
@@ -64,7 +64,7 @@ fn solve_part_2(input: &str) -> u32 {
     };
 
     first_blueprints.iter().map(|blueprint| {
-        find_max_for_blueprint(blueprint, 32);
+        find_max_for_blueprint(blueprint, 32)
     })
         .product()
 }
