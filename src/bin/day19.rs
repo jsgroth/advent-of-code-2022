@@ -14,8 +14,14 @@ struct Blueprint {
     geode_robot_obsidian_cost: u32,
 }
 
+impl Blueprint {
+    fn max_ore_cost(&self) -> u32 {
+        [self.ore_robot_ore_cost, self.clay_robot_ore_cost, self.obsidian_robot_ore_cost, self.geode_robot_ore_cost].into_iter().max().unwrap()
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-struct Key {
+struct SearchState {
     ore: u32,
     ore_robots: u32,
     clay: u32,
@@ -25,13 +31,26 @@ struct Key {
     remaining: u32,
 }
 
+impl SearchState {
+    fn new_initial_state(remaining: u32) -> Self {
+        Self {
+            ore: 0,
+            ore_robots: 1,
+            clay: 0,
+            clay_robots: 0,
+            obsidian: 0,
+            obsidian_robots: 0,
+            remaining,
+        }
+    }
+}
+
 fn solve(input: &str) -> u32 {
     let blueprints = parse_input(input);
 
     blueprints.into_iter().enumerate().map(|(i, blueprint)| {
-        println!("iteration {i}");
         let result = find_max_for_blueprint(&blueprint, 24) * ((i + 1) as u32);
-        println!("{result}");
+        println!("iteration {i}: {result}");
         result
     })
         .sum()
@@ -40,95 +59,119 @@ fn solve(input: &str) -> u32 {
 fn solve_part_2(input: &str) -> u32 {
     let blueprints = parse_input(input);
 
-    blueprints[..cmp::min(3, blueprints.len())].into_iter().enumerate().map(|(i, blueprint)| {
-        println!("iteration {i}");
-        let result = find_max_for_blueprint(&blueprint, 32);
-        println!("{result}");
+    let first_blueprints = if blueprints.len() >= 3 {
+        &blueprints[..3]
+    } else {
+        &blueprints[..]
+    };
+
+    first_blueprints.iter().enumerate().map(|(i, blueprint)| {
+        let result = find_max_for_blueprint(blueprint, 32);
+        println!("iteration {i}: {result}");
         result
     })
         .product()
 }
 
 fn find_max_for_blueprint(blueprint: &Blueprint, remaining: u32) -> u32 {
-    search(blueprint, Key {
-        ore: 0,
-        ore_robots: 1,
-        clay: 0,
-        clay_robots: 0,
-        obsidian: 0,
-        obsidian_robots: 0,
-        remaining,
-    }, &mut HashMap::new())
+    let initial_state = SearchState::new_initial_state(remaining);
+    search(blueprint, initial_state, &mut HashMap::new())
 }
 
 fn search(
     blueprint: &Blueprint,
-    key: Key,
-    cache: &mut HashMap<Key, u32>,
+    state: SearchState,
+    result_cache: &mut HashMap<SearchState, u32>,
 ) -> u32 {
-    if key.remaining == 0 {
+    if state.remaining == 0 {
         return 0;
     }
 
-    if let Some(&value) = cache.get(&key) {
+    if let Some(&value) = result_cache.get(&state) {
         return value;
     }
 
-    let mut future_result = u32::MIN;
+    let SearchState {
+        ore,
+        ore_robots,
+        clay,
+        clay_robots,
+        obsidian,
+        obsidian_robots,
+        remaining,
+    } = state;
 
-    if key.ore >= blueprint.geode_robot_ore_cost && key.obsidian >= blueprint.geode_robot_obsidian_cost {
-        future_result = key.remaining - 1 + cmp::max(future_result, search(blueprint, Key {
-            ore: key.ore - blueprint.geode_robot_ore_cost + key.ore_robots,
-            clay: key.clay + key.clay_robots,
-            obsidian: key.obsidian - blueprint.geode_robot_obsidian_cost + key.obsidian_robots,
-            remaining: key.remaining - 1,
-            ..key
-        }, cache));
+    let next_state = SearchState {
+        ore: ore + ore_robots,
+        ore_robots,
+        clay: clay + clay_robots,
+        clay_robots,
+        obsidian: obsidian + obsidian_robots,
+        obsidian_robots,
+        remaining: remaining - 1,
+    };
+
+    let mut result = u32::MIN;
+
+    if ore >= blueprint.geode_robot_ore_cost && obsidian >= blueprint.geode_robot_obsidian_cost {
+        result = (remaining - 1) + search(
+            blueprint,
+            SearchState {
+                ore: next_state.ore - blueprint.geode_robot_ore_cost,
+                obsidian: next_state.obsidian - blueprint.geode_robot_obsidian_cost,
+                ..next_state
+            },
+            result_cache
+        )
     } else {
-        if key.ore >= blueprint.ore_robot_ore_cost {
-            future_result = cmp::max(future_result, search(blueprint, Key {
-                ore: key.ore - blueprint.ore_robot_ore_cost + key.ore_robots,
-                ore_robots: key.ore_robots + 1,
-                clay: key.clay + key.clay_robots,
-                obsidian: key.obsidian + key.obsidian_robots,
-                remaining: key.remaining - 1,
-                ..key
-            }, cache));
+        let max_ore_cost = blueprint.max_ore_cost();
+        if ore >= blueprint.ore_robot_ore_cost && ore_robots < max_ore_cost &&
+            ore < (1.5 * max_ore_cost as f64).round() as u32
+        {
+            result = cmp::max(result, search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.ore_robot_ore_cost,
+                    ore_robots: ore_robots + 1,
+                    ..next_state
+                },
+                result_cache
+            ))
         }
 
-        if key.ore >= blueprint.clay_robot_ore_cost {
-            future_result = cmp::max(future_result, search(blueprint, Key {
-                ore: key.ore - blueprint.clay_robot_ore_cost + key.ore_robots,
-                clay: key.clay + key.clay_robots,
-                clay_robots: key.clay_robots + 1,
-                obsidian: key.obsidian + key.obsidian_robots,
-                remaining: key.remaining - 1,
-                ..key
-            }, cache))
+        if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost &&
+            clay < (1.5 * blueprint.obsidian_robot_clay_cost as f64).round() as u32
+        {
+            result = cmp::max(result, search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.clay_robot_ore_cost,
+                    clay_robots: clay_robots + 1,
+                    ..next_state
+                },
+                result_cache
+            ))
         }
 
-        if key.ore >= blueprint.obsidian_robot_ore_cost && key.clay >= blueprint.obsidian_robot_clay_cost {
-            future_result = cmp::max(future_result, search(blueprint, Key {
-                ore: key.ore - blueprint.obsidian_robot_ore_cost + key.ore_robots,
-                clay: key.clay - blueprint.obsidian_robot_clay_cost + key.clay_robots,
-                obsidian: key.obsidian + key.obsidian_robots,
-                obsidian_robots: key.obsidian_robots + 1,
-                remaining: key.remaining - 1,
-                ..key
-            }, cache));
+        if ore >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost &&
+            obsidian_robots < blueprint.geode_robot_obsidian_cost && obsidian < (1.5 * blueprint.geode_robot_obsidian_cost as f64).round() as u32
+        {
+            result = cmp::max(result, search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.obsidian_robot_ore_cost,
+                    clay: next_state.clay - blueprint.obsidian_robot_clay_cost,
+                    obsidian_robots: obsidian_robots + 1,
+                    ..next_state
+                },
+                result_cache
+            ));
         }
 
-        future_result = cmp::max(future_result, search(blueprint, Key {
-            ore: key.ore + key.ore_robots,
-            clay: key.clay + key.clay_robots,
-            obsidian: key.obsidian + key.obsidian_robots,
-            remaining: key.remaining - 1,
-            ..key
-        }, cache));
+        result = cmp::max(result, search(blueprint, next_state, result_cache));
     }
 
-    let result = future_result;
-    cache.insert(key, result);
+    result_cache.insert(state, result);
     result
 }
 
@@ -169,10 +212,10 @@ fn main() {
     let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
     let solution1 = solve(&input);
-    println!("{solution1}");
+    println!("Part 1 solution: {solution1}");
 
     let solution2 = solve_part_2(&input);
-    println!("{solution2}");
+    println!("Part 2 solution: {solution2}");
 }
 
 #[cfg(test)]
@@ -187,7 +230,8 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // Takes about 21 seconds with the debug build
     fn test_sample_input_part_2() {
-        assert_eq!(0, solve_part_2(SAMPLE_INPUT));
+        assert_eq!(3472, solve_part_2(SAMPLE_INPUT));
     }
 }
