@@ -50,7 +50,6 @@ fn solve(input: &str) -> u32 {
 
     blueprints.into_iter().enumerate().map(|(i, blueprint)| {
         let result = find_max_for_blueprint(&blueprint, 24) * ((i + 1) as u32);
-        println!("iteration {i}: {result}");
         result
     })
         .sum()
@@ -67,7 +66,6 @@ fn solve_part_2(input: &str) -> u32 {
 
     first_blueprints.iter().enumerate().map(|(i, blueprint)| {
         let result = find_max_for_blueprint(blueprint, 32);
-        println!("iteration {i}: {result}");
         result
     })
         .product()
@@ -212,10 +210,10 @@ fn main() {
     let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
     let solution1 = solve(&input);
-    println!("Part 1 solution: {solution1}");
+    println!("{solution1}");
 
     let solution2 = solve_part_2(&input);
-    println!("Part 2 solution: {solution2}");
+    println!("{solution2}");
 }
 
 #[cfg(test)]
