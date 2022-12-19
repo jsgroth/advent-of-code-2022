@@ -71,13 +71,15 @@ fn solve_part_2(input: &str) -> u32 {
 
 fn find_max_for_blueprint(blueprint: &Blueprint, remaining: u32) -> u32 {
     let initial_state = SearchState::new_initial_state(remaining);
-    search(blueprint, initial_state, &mut HashMap::new())
+    search(blueprint, initial_state, 0, &mut HashMap::new(), &mut 0)
 }
 
 fn search(
     blueprint: &Blueprint,
     state: SearchState,
+    current_total: u32,
     result_cache: &mut HashMap<SearchState, u32>,
+    max_so_far: &mut u32,
 ) -> u32 {
     if state.remaining == 0 {
         return 0;
@@ -85,6 +87,11 @@ fn search(
 
     if let Some(&value) = result_cache.get(&state) {
         return value;
+    }
+
+    if *max_so_far >= current_total + estimate_max_possible(blueprint, &state) {
+        // Break early, returned value doesn't matter because this path won't be the best
+        return u32::MIN;
     }
 
     let SearchState {
@@ -117,13 +124,13 @@ fn search(
                 obsidian: next_state.obsidian - blueprint.geode_robot_obsidian_cost,
                 ..next_state
             },
-            result_cache
+            current_total + remaining - 1,
+            result_cache,
+            max_so_far
         )
     } else {
         let max_ore_cost = blueprint.max_ore_cost();
-        if ore >= blueprint.ore_robot_ore_cost && ore_robots < max_ore_cost &&
-            ore < (1.5 * max_ore_cost as f64).round() as u32
-        {
+        if ore >= blueprint.ore_robot_ore_cost && ore_robots < max_ore_cost {
             result = cmp::max(result, search(
                 blueprint,
                 SearchState {
@@ -131,13 +138,13 @@ fn search(
                     ore_robots: ore_robots + 1,
                     ..next_state
                 },
-                result_cache
+                current_total,
+                result_cache,
+                max_so_far
             ))
         }
 
-        if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost &&
-            clay < (1.5 * blueprint.obsidian_robot_clay_cost as f64).round() as u32
-        {
+        if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost {
             result = cmp::max(result, search(
                 blueprint,
                 SearchState {
@@ -145,12 +152,14 @@ fn search(
                     clay_robots: clay_robots + 1,
                     ..next_state
                 },
-                result_cache
+                current_total,
+                result_cache,
+                max_so_far
             ))
         }
 
         if ore >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost &&
-            obsidian_robots < blueprint.geode_robot_obsidian_cost && obsidian < (1.5 * blueprint.geode_robot_obsidian_cost as f64).round() as u32
+            obsidian_robots < blueprint.geode_robot_obsidian_cost
         {
             result = cmp::max(result, search(
                 blueprint,
@@ -160,15 +169,75 @@ fn search(
                     obsidian_robots: obsidian_robots + 1,
                     ..next_state
                 },
-                result_cache
+                current_total,
+                result_cache,
+                max_so_far
             ));
         }
 
-        result = cmp::max(result, search(blueprint, next_state, result_cache));
+        result = cmp::max(result, search(blueprint, next_state, current_total, result_cache, max_so_far));
     }
 
     result_cache.insert(state, result);
+    *max_so_far = cmp::max(*max_so_far, current_total + result);
     result
+}
+
+// Estimate the max possible future geode from this state by keeping track of a separate ore pool
+// for each type of robot construction and having the ore robots add to every ore pool
+fn estimate_max_possible(blueprint: &Blueprint, state: &SearchState) -> u32 {
+    let &SearchState {
+        ore,
+        mut ore_robots,
+        mut clay,
+        mut clay_robots,
+        mut obsidian,
+        mut obsidian_robots,
+        mut remaining,
+    } = state;
+
+    let mut ore_for_ore = ore;
+    let mut ore_for_clay = ore;
+    let mut ore_for_obsidian = ore;
+    let mut ore_for_geode = ore;
+
+    let mut geode = 0;
+    let mut geode_robots = 0;
+    while remaining > 0 {
+        geode += geode_robots;
+        if ore_for_geode >= blueprint.geode_robot_ore_cost && obsidian >= blueprint.geode_robot_obsidian_cost {
+            geode_robots += 1;
+            ore_for_geode -= blueprint.geode_robot_ore_cost;
+            obsidian -= blueprint.geode_robot_obsidian_cost;
+        }
+
+        obsidian += obsidian_robots;
+        if ore_for_obsidian >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost {
+            obsidian_robots += 1;
+            ore_for_obsidian -= blueprint.obsidian_robot_ore_cost;
+            clay -= blueprint.obsidian_robot_clay_cost;
+        }
+
+        clay += clay_robots;
+        if ore_for_clay >= blueprint.clay_robot_ore_cost {
+            clay_robots += 1;
+            ore_for_clay -= blueprint.clay_robot_ore_cost;
+        }
+
+        ore_for_clay += ore_robots;
+        ore_for_obsidian += ore_robots;
+        ore_for_geode += ore_robots;
+        if ore_for_ore >= blueprint.ore_robot_ore_cost {
+            ore_for_ore = ore_for_ore + ore_robots - blueprint.ore_robot_ore_cost;
+            ore_robots += 1;
+        } else {
+            ore_for_ore += ore_robots;
+        }
+
+        remaining -= 1;
+    }
+
+    geode
 }
 
 fn parse_input(input: &str) -> Vec<Blueprint> {
@@ -226,7 +295,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // Takes about 21 seconds with the debug build
     fn test_sample_input_part_2() {
         assert_eq!(3472, solve_part_2(SAMPLE_INPUT));
     }
