@@ -75,7 +75,9 @@ fn find_max_for_blueprint(blueprint: &Blueprint, remaining: u32) -> u32 {
 }
 
 // Returns the number of geode that can be mined by geode robots constructed in the future,
-// not including geode mined by geode robots that were produced before this state
+// not including geode mined by geode robots that were produced before this state. The current_total
+// parameter holds the number of geode mined by geode robots produced in the past and is only used
+// for pruning checks.
 fn search(
     blueprint: &Blueprint,
     state: SearchState,
