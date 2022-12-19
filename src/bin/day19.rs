@@ -64,7 +64,7 @@ fn solve_part_2(input: &str) -> u32 {
         &blueprints[..]
     };
 
-    first_blueprints.iter().enumerate().map(|(i, blueprint)| {
+    first_blueprints.iter().map(|blueprint| {
         let result = find_max_for_blueprint(blueprint, 32);
         result
     })
