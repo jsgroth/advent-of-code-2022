@@ -131,7 +131,7 @@ fn search(
             current_total + remaining - 1,
             result_cache,
             max_so_far
-        )
+        );
     } else {
         let max_ore_cost = blueprint.max_ore_cost();
         if ore >= blueprint.ore_robot_ore_cost && ore_robots < max_ore_cost {
