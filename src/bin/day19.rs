@@ -74,6 +74,8 @@ fn find_max_for_blueprint(blueprint: &Blueprint, remaining: u32) -> u32 {
     search(blueprint, initial_state, 0, &mut HashMap::new(), &mut 0)
 }
 
+// Returns the number of geode that can be mined by geode robots constructed in the future,
+// not including geode mined by geode robots that were produced before this state
 fn search(
     blueprint: &Blueprint,
     state: SearchState,
