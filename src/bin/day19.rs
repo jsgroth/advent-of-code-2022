@@ -145,7 +145,7 @@ fn search(
                 current_total,
                 result_cache,
                 max_so_far
-            ))
+            ));
         }
 
         if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost {
@@ -159,7 +159,7 @@ fn search(
                 current_total,
                 result_cache,
                 max_so_far
-            ))
+            ));
         }
 
         if ore >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost &&
