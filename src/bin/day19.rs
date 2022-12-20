@@ -132,55 +132,54 @@ fn search(
             result_cache,
             max_so_far
         );
-    } else {
-        let max_ore_cost = blueprint.max_ore_cost();
-        if ore >= blueprint.ore_robot_ore_cost && ore_robots < max_ore_cost {
-            result = cmp::max(result, search(
-                blueprint,
-                SearchState {
-                    ore: next_state.ore - blueprint.ore_robot_ore_cost,
-                    ore_robots: ore_robots + 1,
-                    ..next_state
-                },
-                current_total,
-                result_cache,
-                max_so_far
-            ));
-        }
-
-        if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost {
-            result = cmp::max(result, search(
-                blueprint,
-                SearchState {
-                    ore: next_state.ore - blueprint.clay_robot_ore_cost,
-                    clay_robots: clay_robots + 1,
-                    ..next_state
-                },
-                current_total,
-                result_cache,
-                max_so_far
-            ));
-        }
-
-        if ore >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost &&
-            obsidian_robots < blueprint.geode_robot_obsidian_cost
-        {
-            result = cmp::max(result, search(
-                blueprint,
-                SearchState {
-                    ore: next_state.ore - blueprint.obsidian_robot_ore_cost,
-                    clay: next_state.clay - blueprint.obsidian_robot_clay_cost,
-                    obsidian_robots: obsidian_robots + 1,
-                    ..next_state
-                },
-                current_total,
-                result_cache,
-                max_so_far
-            ));
-        }
-
-        result = cmp::max(result, search(blueprint, next_state, current_total, result_cache, max_so_far));
     }
+
+    if ore >= blueprint.ore_robot_ore_cost && ore_robots < blueprint.max_ore_cost() {
+        result = cmp::max(result, search(
+            blueprint,
+            SearchState {
+                ore: next_state.ore - blueprint.ore_robot_ore_cost,
+                ore_robots: ore_robots + 1,
+                ..next_state
+            },
+            current_total,
+            result_cache,
+            max_so_far
+        ));
+    }
+
+    if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost {
+        result = cmp::max(result, search(
+            blueprint,
+            SearchState {
+                ore: next_state.ore - blueprint.clay_robot_ore_cost,
+                clay_robots: clay_robots + 1,
+                ..next_state
+            },
+            current_total,
+            result_cache,
+            max_so_far
+        ));
+    }
+
+    if ore >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost &&
+        obsidian_robots < blueprint.geode_robot_obsidian_cost
+    {
+        result = cmp::max(result, search(
+            blueprint,
+            SearchState {
+                ore: next_state.ore - blueprint.obsidian_robot_ore_cost,
+                clay: next_state.clay - blueprint.obsidian_robot_clay_cost,
+                obsidian_robots: obsidian_robots + 1,
+                ..next_state
+            },
+            current_total,
+            result_cache,
+            max_so_far
+        ));
+    }
+
+    result = cmp::max(result, search(blueprint, next_state, current_total, result_cache, max_so_far));
 
     result_cache.insert(state, result);
     *max_so_far = cmp::max(*max_so_far, current_total + result);
