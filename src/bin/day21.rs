@@ -22,13 +22,14 @@ impl Monkey {
                 Self::Constant { name, n: n.parse().expect("single word should be an integer") }
             }
             [a, op, b] => {
-                let a_monkey = Self::from_line(a, all_lines.get(a).unwrap(), all_lines);
-                let b_monkey = Self::from_line(b, all_lines.get(b).unwrap(), all_lines);
+                let a = Box::new(Self::from_line(a, all_lines.get(a).unwrap(), all_lines));
+                let b = Box::new(Self::from_line(b, all_lines.get(b).unwrap(), all_lines));
+                
                 match *op {
-                    "+" => Self::Add { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
-                    "-" => Self::Subtract { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
-                    "*" => Self::Multiply { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
-                    "/" => Self::Divide { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
+                    "+" => Self::Add { name, a, b },
+                    "-" => Self::Subtract { name, a, b },
+                    "*" => Self::Multiply { name, a, b },
+                    "/" => Self::Divide { name, a, b },
                     _ => panic!("unexpected operator: {op}"),
                 }
             }
