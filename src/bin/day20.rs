@@ -9,17 +9,26 @@ struct Node {
 struct NumberList {
     nodes: Vec<Node>,
     indices: Vec<usize>,
+    zero_index: usize,
 }
 
 impl NumberList {
     fn from_vec(v: Vec<i64>) -> Self {
         let mut nodes = Vec::with_capacity(v.len());
         let mut indices = Vec::with_capacity(v.len());
+        let mut zero_index: Option<usize> = None;
         for (i, n) in v.into_iter().enumerate() {
             nodes.push(Node { value: n, original_index: i });
             indices.push(i);
+            if n == 0 {
+                zero_index = Some(i);
+            }
         }
-        Self { nodes, indices }
+        Self {
+            nodes,
+            indices,
+            zero_index: zero_index.expect("list should contain 0"),
+        }
     }
 
     fn move_num(&mut self, i: usize) {
@@ -43,8 +52,7 @@ impl NumberList {
     }
 
     fn get(&self, i: usize) -> i64 {
-        let zero_index = self.nodes.iter().position(|node| node.value == 0).expect("list should contain 0");
-        let target_index = (zero_index + i) % self.nodes.len();
+        let target_index = (self.indices[self.zero_index] + i) % self.nodes.len();
         self.nodes[target_index].value
     }
 
