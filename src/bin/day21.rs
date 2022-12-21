@@ -5,40 +5,61 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 enum Monkey {
-    Constant(i64),
-    Add(String, String),
-    Subtract(String, String),
-    Multiply(String, String),
-    Divide(String, String),
+    Constant { name: String, n: i64 },
+    Add { name: String, a: Box<Monkey>, b: Box<Monkey> },
+    Subtract { name: String, a: Box<Monkey>, b: Box<Monkey> },
+    Multiply { name: String, a: Box<Monkey>, b: Box<Monkey> },
+    Divide { name: String, a: Box<Monkey>, b: Box<Monkey> },
 }
 
 impl Monkey {
-    fn evaluate(&self, monkey_map: &HashMap<&str, &Monkey>) -> i64 {
-        match self {
-            Self::Constant(n) => *n,
-            Self::Add(a, b) => {
-                monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map) + monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map)
+    fn from_line(name: &str, line: &str, all_lines: &HashMap<&str, &str>) -> Self {
+        let name = String::from(name);
+
+        let split: Vec<_> = line.split(' ').collect();
+        match split.as_slice() {
+            [n] => {
+                Self::Constant { name, n: n.parse().expect("single word should be an integer") }
             }
-            Self::Subtract(a, b) => {
-                monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map) - monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map)
+            [a, op, b] => {
+                let a_monkey = Self::from_line(a, all_lines.get(a).unwrap(), all_lines);
+                let b_monkey = Self::from_line(b, all_lines.get(b).unwrap(), all_lines);
+                match *op {
+                    "+" => Self::Add { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
+                    "-" => Self::Subtract { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
+                    "*" => Self::Multiply { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
+                    "/" => Self::Divide { name, a: Box::new(a_monkey), b: Box::new(b_monkey) },
+                    _ => panic!("unexpected operator: {op}"),
+                }
             }
-            Self::Multiply(a, b) => {
-                monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map) * monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map)
-            }
-            Self::Divide(a, b) => {
-                monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map) / monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map)
-            }
+            _ => panic!("unexpected line format: {line}"),
         }
     }
 
-    fn populate_contains_human<'a>(&'a self, name: &'a str, monkey_map: &HashMap<&str, &'a Monkey>, contains_human: &mut HashSet<&'a str>) -> bool {
+    fn evaluate(&self) -> i64 {
         match self {
-            Self::Constant(_) => name == "humn",
-            Self::Add(a, b) | Self::Subtract(a, b) | Self::Multiply(a, b) | Self::Divide(a, b) => {
-                let a_contains_human = monkey_map.get(a.as_str()).unwrap().populate_contains_human(a, monkey_map, contains_human);
-                let b_contains_human = monkey_map.get(b.as_str()).unwrap().populate_contains_human(b, monkey_map, contains_human);
-                if a_contains_human || b_contains_human {
-                    contains_human.insert(name);
+            Self::Constant { n, .. } => *n,
+            Self::Add { a, b, .. } => a.evaluate() + b.evaluate(),
+            Self::Subtract { a, b, .. } => a.evaluate() - b.evaluate(),
+            Self::Multiply { a, b, .. } => a.evaluate() * b.evaluate(),
+            Self::Divide { a, b, .. } => a.evaluate() / b.evaluate(),
+        }
+    }
+
+    fn find_human_path<'a>(&'a self, human_path: &mut HashSet<&'a str>) -> bool {
+        if self.get_name() == "humn" {
+            human_path.insert("humn");
+            return true;
+        }
+
+        match self {
+            Self::Constant { .. } => false,
+            Self::Add { name, a, b } |
+            Self::Subtract { name, a, b } |
+            Self::Multiply { name, a, b } |
+            Self::Divide { name, a, b } => {
+                if a.find_human_path(human_path) || b.find_human_path(human_path) {
+                    human_path.insert(name.as_str());
                     true
                 } else {
                     false
@@ -47,119 +68,95 @@ impl Monkey {
         }
     }
 
-    fn solve(&self, n: i64, name: &str, monkey_map: &HashMap<&str, &Monkey>, contains_human: &HashSet<&str>) -> i64 {
+    fn solve_for_human(&self, current_value: i64, human_path: &HashSet<&str>) -> i64 {
         match self {
-            Self::Constant(my_n) => {
-                if name == "humn" {
-                    n
+            Self::Constant { name, n } => {
+                if human_path.contains(name.as_str()) {
+                    current_value
                 } else {
-                    *my_n
+                    *n
                 }
             }
-            Self::Add(a, b) => {
-                if contains_human.contains(a.as_str()) {
-                    let n = n - monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map);
-                    monkey_map.get(a.as_str()).unwrap().solve(n, a, monkey_map, contains_human)
+            Self::Add { a, b, .. } => {
+                if human_path.contains(a.get_name()) {
+                    a.solve_for_human(current_value - b.evaluate(), human_path)
                 } else {
-                    let n = n - monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map);
-                    monkey_map.get(b.as_str()).unwrap().solve(n, b, monkey_map, contains_human)
+                    b.solve_for_human(current_value - a.evaluate(), human_path)
                 }
             }
-            Self::Subtract(a, b) => {
-                if contains_human.contains(a.as_str()) {
-                    let n = n + monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map);
-                    monkey_map.get(a.as_str()).unwrap().solve(n, a, monkey_map, contains_human)
+            Self::Subtract { a, b, .. } => {
+                if human_path.contains(a.get_name()) {
+                    a.solve_for_human(current_value + b.evaluate(), human_path)
                 } else {
-                    let n = -(n - monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map));
-                    monkey_map.get(b.as_str()).unwrap().solve(n, b, monkey_map, contains_human)
+                    b.solve_for_human(a.evaluate() - current_value, human_path)
                 }
             }
-            Self::Multiply(a, b) => {
-                if contains_human.contains(a.as_str()) {
-                    let n = n / monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map);
-                    monkey_map.get(a.as_str()).unwrap().solve(n, a, monkey_map, contains_human)
+            Self::Multiply { a, b, .. } => {
+                if human_path.contains(a.get_name()) {
+                    a.solve_for_human(current_value / b.evaluate(), human_path)
                 } else {
-                    let n = n / monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map);
-                    monkey_map.get(b.as_str()).unwrap().solve(n, b, monkey_map, contains_human)
+                    b.solve_for_human(current_value / a.evaluate(), human_path)
                 }
             }
-            Self::Divide(a, b) => {
-                if contains_human.contains(a.as_str()) {
-                    let n = n * monkey_map.get(b.as_str()).unwrap().evaluate(monkey_map);
-                    monkey_map.get(a.as_str()).unwrap().solve(n, a, monkey_map, contains_human)
+            Self::Divide { a, b, .. } => {
+                if human_path.contains(a.get_name()) {
+                    a.solve_for_human(current_value * b.evaluate(), human_path)
                 } else {
-                    let n = monkey_map.get(a.as_str()).unwrap().evaluate(monkey_map) / n;
-                    monkey_map.get(b.as_str()).unwrap().solve(n, b, monkey_map, contains_human)
+                    b.solve_for_human(a.evaluate() / current_value, human_path)
                 }
+            }
+        }
+    }
+
+    fn get_name(&self) -> &str {
+        match self {
+            Self::Constant { name, .. } |
+            Self::Add { name, .. } |
+            Self::Subtract { name, .. } |
+            Self::Multiply { name, .. } |
+            Self::Divide { name, .. } => {
+                name
             }
         }
     }
 }
 
 fn solve(input: &str) -> i64 {
-    let monkeys = parse_input(input);
+    let root_monkey = parse_input(input);
 
-    let mut monkey_map: HashMap<&str, &Monkey> = HashMap::with_capacity(monkeys.len());
-    for (name, monkey) in &monkeys {
-        monkey_map.insert(name, monkey);
-    }
-
-    monkey_map.get("root").unwrap().evaluate(&monkey_map)
+    root_monkey.evaluate()
 }
 
 fn solve_part_2(input: &str) -> i64 {
-    let monkeys = parse_input(input);
+    let root_monkey = parse_input(input);
 
-    let mut monkey_map: HashMap<&str, &Monkey> = HashMap::with_capacity(monkeys.len());
-    for (name, monkey) in &monkeys {
-        monkey_map.insert(name, monkey);
-    }
+    let mut human_path: HashSet<&str> = HashSet::new();
+    root_monkey.find_human_path(&mut human_path);
 
-    let mut contains_human: HashSet<&str> = HashSet::new();
-    contains_human.insert("humn");
-    monkey_map.get("root").unwrap().populate_contains_human("root", &monkey_map, &mut contains_human);
-
-    match monkey_map.get("root").unwrap() {
-        Monkey::Add(a, b) | Monkey::Subtract(a, b) | Monkey::Multiply(a, b) | Monkey::Divide(a, b) => {
-            if contains_human.contains(a.as_str()) {
-                let b = monkey_map.get(b.as_str()).unwrap().evaluate(&monkey_map);
-                monkey_map.get(a.as_str()).unwrap().solve(b, a, &monkey_map, &contains_human)
+    match &root_monkey {
+        Monkey::Add { a, b, .. } | Monkey::Subtract { a, b, .. } |
+        Monkey::Multiply { a, b, .. } | Monkey::Divide { a, b, .. } => {
+            if human_path.contains(a.get_name()) {
+                a.solve_for_human(b.evaluate(), &human_path)
             } else {
-                let a = monkey_map.get(a.as_str()).unwrap().evaluate(&monkey_map);
-                monkey_map.get(b.as_str()).unwrap().solve(a, b, &monkey_map, &contains_human)
+                b.solve_for_human(a.evaluate(), &human_path)
             }
         }
-        _ => panic!("root is not add"),
+        _ => panic!("root monkey should not be a constant")
     }
 }
 
-fn parse_input(input: &str) -> Vec<(String, Monkey)> {
-    input.lines().map(|line| {
-        let split: Vec<_> = line.split(' ').collect();
-        let name = String::from(&split[0][..split[0].len() - 1]);
+fn parse_input(input: &str) -> Monkey {
+    let lines_by_name: HashMap<_, _> = input.lines().map(|line| {
+        let (name, rest_of_line) = line.split_once(' ').expect("every line should have a space");
+        let name = &name[..name.len() - 1];
 
-        let op = match split[1..] {
-            [n] => {
-                Monkey::Constant(n.parse::<i64>().expect("single word should be an integer"))
-            }
-            [a, "+", b] => {
-                Monkey::Add(String::from(a), String::from(b))
-            }
-            [a, "-", b] => {
-                Monkey::Subtract(String::from(a), String::from(b))
-            }
-            [a, "*", b] => {
-                Monkey::Multiply(String::from(a), String::from(b))
-            }
-            [a, "/", b] => {
-                Monkey::Divide(String::from(a), String::from(b))
-            }
-            _ => panic!("unexpected operation: {split:?}"),
-        };
-
-        (name, op)
+        (name, rest_of_line)
     })
-        .collect()
+        .collect();
+
+    let root_line = lines_by_name.get("root").expect("input should have a root line");
+    Monkey::from_line("root", root_line, &lines_by_name)
 }
 
 fn main() {
