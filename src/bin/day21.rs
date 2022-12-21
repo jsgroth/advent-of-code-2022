@@ -120,7 +120,7 @@ fn solve_part_2(input: &str) -> i64 {
     monkey_map.get("root").unwrap().populate_contains_human("root", &monkey_map, &mut contains_human);
 
     match monkey_map.get("root").unwrap() {
-        Monkey::Add(a, b) => {
+        Monkey::Add(a, b) | Monkey::Subtract(a, b) | Monkey::Multiply(a, b) | Monkey::Divide(a, b) => {
             if contains_human.contains(a.as_str()) {
                 let b = monkey_map.get(b.as_str()).unwrap().evaluate(&monkey_map);
                 monkey_map.get(a.as_str()).unwrap().solve(b, a, &monkey_map, &contains_human)
