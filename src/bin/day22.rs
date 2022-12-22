@@ -269,7 +269,6 @@ fn solve_part_2(input: &str) -> usize {
     let mut dy = 0;
 
     for instruction in &instructions {
-        println!("executing {instruction:?}");
         match instruction {
             Instruction::Move(n) => {
                 for _ in 0..*n {
@@ -279,23 +278,22 @@ fn solve_part_2(input: &str) -> usize {
                     let mut new_dx = dx;
                     let mut new_dy = dy;
 
-                    if i == 0 && dy < 0 {
-                        new_cube_index = cube_faces[cube_index].up.index;
-                        (new_i, new_j) = cube_faces[cube_index].up.rotation.rotate_coordinates(i, j, side_len);
-                        (new_dx, new_dy) = cube_faces[cube_index].up.rotation.rotate_facing(dx, dy);
+                    let connection = if i == 0 && dy < 0 {
+                        Some(&cube_faces[cube_index].up)
                     } else if i == side_len - 1 && dy > 0 {
-                        new_cube_index = cube_faces[cube_index].down.index;
-                        (new_i, new_j) = cube_faces[cube_index].down.rotation.rotate_coordinates(i, j, side_len);
-                        (new_dx, new_dy) = cube_faces[cube_index].down.rotation.rotate_facing(dx, dy);
+                        Some(&cube_faces[cube_index].down)
                     } else if j == 0 && dx < 0 {
-                        new_cube_index = cube_faces[cube_index].left.index;
-                        (new_i, new_j) = cube_faces[cube_index].left.rotation.rotate_coordinates(i, j, side_len);
-                        (new_dx, new_dy) = cube_faces[cube_index].left.rotation.rotate_facing(dx, dy);
+                        Some(&cube_faces[cube_index].left)
                     } else if j == side_len - 1 && dx > 0 {
-                        new_cube_index = cube_faces[cube_index].right.index;
-                        (new_i, new_j) = cube_faces[cube_index].right.rotation.rotate_coordinates(i, j, side_len);
-                        (new_dx, new_dy) = cube_faces[cube_index].right.rotation.rotate_facing(dx, dy);
-                        println!("new_i={new_i}, new_j={new_j}, new_dx={new_dx}, new_dy={new_dy}");
+                        Some(&cube_faces[cube_index].right)
+                    } else {
+                        None
+                    };
+
+                    if let Some(connection) = connection {
+                        new_cube_index = connection.index;
+                        (new_i, new_j) = connection.rotation.rotate_coordinates(i, j, side_len);
+                        (new_dx, new_dy) = connection.rotation.rotate_facing(dx, dy);
                     }
 
                     new_i = (((new_i + side_len) as i32 + new_dy) % side_len as i32) as usize;
@@ -323,10 +321,7 @@ fn solve_part_2(input: &str) -> usize {
                 dx = t;
             }
         }
-        println!("now at: cube={cube_index}, i={i}, j={j}, dx={dx}, dy={dy}");
     }
-
-    println!("cube: {cube_index}, i: {i}, j: {j}, dx: {dx}, dy: {dy}");
 
     let final_i = cube_faces[cube_index].top_left.0 + i;
     let final_j = cube_faces[cube_index].top_left.1 + j;
