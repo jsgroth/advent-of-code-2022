@@ -61,14 +61,11 @@ enum Direction {
 }
 
 impl Direction {
+    const DIRECTIONS: [Self; 4] = [Self::North, Self::South, Self::West, Self::East];
+
     fn get_directions_shifted(iteration: usize) -> Vec<Self> {
-        match iteration % 4 {
-            0 => vec![Self::North, Self::South, Self::West, Self::East],
-            1 => vec![Self::South, Self::West, Self::East, Self::North],
-            2 => vec![Self::West, Self::East, Self::North, Self::South],
-            3 => vec![Self::East, Self::North, Self::South, Self::West],
-            _ => panic!("should never happen, i={iteration}"),
-        }
+        let (l, r) = Self::DIRECTIONS.split_at(iteration % 4);
+        Vec::from_iter(r.iter().chain(l.iter()).cloned())
     }
 }
 
