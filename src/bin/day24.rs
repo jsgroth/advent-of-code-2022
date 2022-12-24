@@ -69,8 +69,6 @@ struct SearchState {
     iteration: usize,
     target_i: usize,
     target_j: usize,
-    rows: usize,
-    cols: usize,
 }
 
 impl SearchState {
@@ -99,7 +97,7 @@ fn solve(input: &str) -> usize {
     let rows = initial_grid.len();
     let cols = initial_grid[0].len();
 
-    let initial_state = SearchState { elf_i: 0, elf_j: 1, iteration: 0, rows, cols, target_i: rows - 2, target_j: cols - 2 };
+    let initial_state = SearchState { elf_i: 0, elf_j: 1, iteration: 0, target_i: rows - 2, target_j: cols - 2 };
 
     find_shortest_distance(&initial_grid, initial_state)
 }
@@ -109,13 +107,13 @@ fn solve_part_2(input: &str) -> usize {
     let rows = initial_grid.len();
     let cols = initial_grid[0].len();
 
-    let initial_state = SearchState { elf_i: 0, elf_j: 1, iteration: 0, rows, cols, target_i: rows - 2, target_j: cols - 2 };
+    let initial_state = SearchState { elf_i: 0, elf_j: 1, iteration: 0, target_i: rows - 2, target_j: cols - 2 };
     let first_step = find_shortest_distance(&initial_grid, initial_state);
 
-    let second_state = SearchState { elf_i: rows - 1, elf_j: cols - 2, iteration: first_step - 1, rows, cols, target_i: 1, target_j: 1 };
+    let second_state = SearchState { elf_i: rows - 1, elf_j: cols - 2, iteration: first_step - 1, target_i: 1, target_j: 1 };
     let second_step = find_shortest_distance(&initial_grid, second_state);
 
-    let final_state = SearchState { elf_i: 0, elf_j: 1, iteration: second_step - 1, rows, cols, target_i: rows - 2, target_j: cols - 2 };
+    let final_state = SearchState { elf_i: 0, elf_j: 1, iteration: second_step - 1, target_i: rows - 2, target_j: cols - 2 };
     find_shortest_distance(&initial_grid, final_state)
 }
 
@@ -123,7 +121,10 @@ fn find_shortest_distance(
     initial_grid: &Vec<Vec<Vec<Blizzard>>>,
     initial_state: SearchState,
 ) -> usize {
-    let SearchState { rows, cols, target_i, target_j, .. } = initial_state;
+    let SearchState { target_i, target_j, .. } = initial_state;
+
+    let rows = initial_grid.len();
+    let cols = initial_grid[0].len();
 
     let mut grids = vec![initial_grid.clone()];
     let mut queue: BinaryHeap<SearchState> = BinaryHeap::new();
@@ -141,17 +142,17 @@ fn find_shortest_distance(
         let next_grid = &grids[iteration + 1];
 
 
-        for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+        for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1), (0, 0)] {
             let new_i = elf_i as i32 + dy;
             let new_j = elf_j as i32 + dx;
 
-            if new_i <= 0 || new_j <= 0 {
+            if (new_i == 0 && new_j != 1) || new_i < 0 || new_j <= 0 {
                 continue;
             }
 
             let new_i = new_i as usize;
             let new_j = new_j as usize;
-            if new_i >= rows - 1 || new_j >= cols - 1 {
+            if (new_i == rows - 1 && new_j != cols - 2) || new_i > rows - 1 || new_j >= cols - 1 {
                 continue;
             }
 
@@ -164,15 +165,7 @@ fn find_shortest_distance(
                 return iteration + 2;
             }
 
-            let new_state = SearchState { elf_i: new_i, elf_j: new_j, iteration: iteration + 1, rows, cols, target_i, target_j };
-            if !checked_states.contains(&new_state) {
-                checked_states.insert(new_state.clone());
-                queue.push(new_state);
-            }
-        }
-
-        if next_grid[elf_i][elf_j].is_empty() {
-            let new_state = SearchState { elf_i, elf_j, iteration: iteration + 1, rows, cols, target_i, target_j };
+            let new_state = SearchState { elf_i: new_i, elf_j: new_j, iteration: iteration + 1, target_i, target_j };
             if !checked_states.contains(&new_state) {
                 checked_states.insert(new_state.clone());
                 queue.push(new_state);
