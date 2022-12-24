@@ -93,17 +93,7 @@ impl Ord for SearchState {
     }
 }
 
-fn solve(input: &str) -> usize {
-    let initial_grid = parse_input(input);
-    let rows = initial_grid.len();
-    let cols = initial_grid[0].len();
-
-    let initial_state = SearchState { elf_i: 0, elf_j: 1, iteration: 0, target_i: rows - 2, target_j: cols - 2 };
-
-    find_shortest_distance(&initial_grid, initial_state)
-}
-
-fn solve_part_2(input: &str) -> usize {
+fn solve(input: &str) -> (usize, usize) {
     let initial_grid = parse_input(input);
     let rows = initial_grid.len();
     let cols = initial_grid[0].len();
@@ -115,7 +105,9 @@ fn solve_part_2(input: &str) -> usize {
     let second_step = find_shortest_distance(&initial_grid, second_state);
 
     let final_state = SearchState { elf_i: 0, elf_j: 1, iteration: second_step - 1, target_i: rows - 2, target_j: cols - 2 };
-    find_shortest_distance(&initial_grid, final_state)
+    let final_step = find_shortest_distance(&initial_grid, final_state);
+
+    (first_step, final_step)
 }
 
 fn find_shortest_distance(
@@ -141,7 +133,6 @@ fn find_shortest_distance(
         }
 
         let next_grid = &grids[iteration + 1];
-
 
         for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1), (0, 0)] {
             let new_i = elf_i as i32 + dy;
@@ -222,10 +213,8 @@ fn parse_input(input: &str) -> Vec<Vec<Vec<Blizzard>>> {
 fn main() {
     let input = advent_of_code_2022::read_input().expect("unable to read input file");
 
-    let solution1 = solve(&input);
+    let (solution1, solution2) = solve(&input);
     println!("{solution1}");
-
-    let solution2 = solve_part_2(&input);
     println!("{solution2}");
 }
 
@@ -237,11 +226,13 @@ mod tests {
 
     #[test]
     fn test_sample_input_part_1() {
-        assert_eq!(18, solve(SAMPLE_INPUT));
+        let (solution1, _) = solve(SAMPLE_INPUT);
+        assert_eq!(18, solution1);
     }
 
     #[test]
     fn test_sample_input_part_2() {
-        assert_eq!(54, solve_part_2(SAMPLE_INPUT));
+        let (_, solution2) = solve(SAMPLE_INPUT);
+        assert_eq!(54, solution2);
     }
 }
