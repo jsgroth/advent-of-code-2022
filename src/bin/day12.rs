@@ -93,10 +93,10 @@ fn parse_input(input: &str) -> Input {
                 }
                 'E' => {
                     end = (i, j);
-                    row.push(('z' as u8) - ('a' as u8));
+                    row.push(b'z' - b'a');
                 }
                 _ => {
-                    row.push((c as u8) - ('a' as u8));
+                    row.push((c as u8) - b'a');
                 }
             }
         }

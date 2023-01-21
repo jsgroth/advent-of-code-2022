@@ -35,7 +35,7 @@ fn to_snafu_number(mut n: i64) -> String {
                 n = (n + 1) / 5;
             }
             _ => {
-                s.push((rem + ('0' as u8)) as char);
+                s.push((rem + b'0') as char);
                 n /= 5;
             }
         }

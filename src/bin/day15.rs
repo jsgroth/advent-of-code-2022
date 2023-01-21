@@ -52,7 +52,7 @@ fn solve(input: &str, y_to_check: i32) -> usize {
         .max()
         .unwrap();
 
-    let beacon_positions: HashSet<_> = sensors.iter().map(|sensor| sensor.nearest_beacon.clone()).collect();
+    let beacon_positions: HashSet<_> = sensors.iter().map(|sensor| sensor.nearest_beacon).collect();
 
     (min_x..=max_x).filter(|&x| {
         let p = Point::new(x, y_to_check);

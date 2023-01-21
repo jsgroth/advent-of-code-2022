@@ -8,8 +8,8 @@ pub fn read_input() -> io::Result<String> {
     // args[0] is executable path
     args.next();
 
-    let input_path = args.next().ok_or(
-        io::Error::new(io::ErrorKind::NotFound, "missing input file arg")
+    let input_path = args.next().ok_or_else(
+        || io::Error::new(io::ErrorKind::NotFound, "missing input file arg")
     )?;
 
     fs::read_to_string(Path::new(&input_path))

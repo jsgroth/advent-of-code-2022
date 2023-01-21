@@ -101,14 +101,14 @@ fn simulate_iteration(iteration: usize, elf_positions: HashSet<Point>) -> HashSe
 
     let mut proposed_new_positions: HashMap<Point, Point> = HashMap::with_capacity(elf_positions.len());
 
-    for elf in &elf_positions {
+    for &elf in &elf_positions {
         if !elf.all_adjacent().into_iter().any(|p| elf_positions.contains(&p)) {
             // No adjacent elves
-            proposed_new_positions.insert(elf.clone(), elf.clone());
+            proposed_new_positions.insert(elf, elf);
             continue;
         }
 
-        let mut proposed_new_position = elf.clone();
+        let mut proposed_new_position = elf;
         for direction in &directions {
             match direction {
                 Direction::North => {
@@ -142,21 +142,21 @@ fn simulate_iteration(iteration: usize, elf_positions: HashSet<Point>) -> HashSe
             }
         }
 
-        proposed_new_positions.insert(elf.clone(), proposed_new_position);
+        proposed_new_positions.insert(elf, proposed_new_position);
     }
 
     let mut proposed_position_counts: HashMap<Point, usize> = HashMap::new();
-    for proposed_new_position in proposed_new_positions.values() {
-        if let Some(count) = proposed_position_counts.get_mut(proposed_new_position) {
+    for &proposed_new_position in proposed_new_positions.values() {
+        if let Some(count) = proposed_position_counts.get_mut(&proposed_new_position) {
             *count += 1;
         } else {
-            proposed_position_counts.insert(proposed_new_position.clone(), 1);
+            proposed_position_counts.insert(proposed_new_position, 1);
         }
     }
 
-    for (elf, proposed_new_position) in proposed_new_positions.iter_mut() {
+    for (&elf, proposed_new_position) in proposed_new_positions.iter_mut() {
         if proposed_position_counts.get(proposed_new_position).copied().unwrap() > 1 {
-            *proposed_new_position = elf.clone();
+            *proposed_new_position = elf;
         }
     }
 

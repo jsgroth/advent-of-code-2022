@@ -30,10 +30,7 @@ impl Directory {
     }
 
     fn get_subdirectory(&self, name: &str) -> Option<Rc<RefCell<Directory>>> {
-        match self.subdirectories.get(name) {
-            Some(dir) => Some(Rc::clone(dir)),
-            None => None,
-        }
+        self.subdirectories.get(name).map(Rc::clone)
     }
 
     fn get_all_total_sizes(&self) -> Vec<u32> {
@@ -126,7 +123,7 @@ where
     let mut result: Vec<&str> = Vec::new();
 
     while let Some(line) = iter.peek() {
-        if line.chars().next() == Some('$') {
+        if line.starts_with('$') {
             break;
         }
 
@@ -141,7 +138,7 @@ fn handle_ls_command(current_dir: &mut Rc<RefCell<Directory>>, ls_output: &[&str
         let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
         if size == "dir" {
             let directory = Directory::new(Some(Rc::downgrade(current_dir)));
-            if let Some(_) = current_dir.borrow_mut().add_subdirectory(String::from(name), directory) {
+            if current_dir.borrow_mut().add_subdirectory(String::from(name), directory).is_some() {
                 panic!("directory {} already exists in current directory", name);
             }
         } else {

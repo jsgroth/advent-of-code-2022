@@ -367,11 +367,7 @@ fn parse_input(input: &str) -> CaveGraph {
         let flow_rate = flow_rate["rate=".len()..flow_rate.len() - 1].parse().expect("flow rate should be an integer");
 
         let tunnels: Vec<_> = split.skip(4).map(|tunnel| {
-            if tunnel.chars().last() == Some(',') {
-                &tunnel[..tunnel.len() - 1]
-            } else {
-                tunnel
-            }
+            tunnel.strip_suffix(',').unwrap_or(tunnel)
         })
             .collect();
 

@@ -56,12 +56,12 @@ fn solve_part_2(input: &str) -> usize {
 fn parse_input(input: &str) -> Vec<Vec<u8>> {
     input.lines().map(|line| {
         line.as_bytes().iter().map(|c| {
-            *c - ('0' as u8)
+            *c - b'0'
         }).collect()
     }).collect()
 }
 
-fn col_iter<'a, T>(grid: &'a Vec<Vec<T>>, j: usize) -> impl Iterator<Item = T> + DoubleEndedIterator + 'a
+fn col_iter<T>(grid: &Vec<Vec<T>>, j: usize) -> impl Iterator<Item = T> + DoubleEndedIterator + '_
 where T: Copy
 {
     let rows = grid.len();

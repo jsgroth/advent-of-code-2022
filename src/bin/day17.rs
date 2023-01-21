@@ -121,10 +121,10 @@ impl TetrisChamber {
     // Find the column with the lowest max height, then return all points at or higher than that
     // height with their heights normalized to the lowest max
     fn determine_highest_points(&self) -> Vec<Point> {
-        let max_per_col: Vec<_> = self.occupied_points.iter()
+        let lowest_max = self.occupied_points.iter()
             .map(|col| col.last().copied().unwrap_or(0))
-            .collect();
-        let lowest_max = max_per_col.into_iter().min().unwrap();
+            .min()
+            .unwrap();
 
         let mut result: Vec<_> = self.occupied_points.iter().enumerate()
             .flat_map(|(x, col)| {

@@ -157,11 +157,7 @@ impl CubeFaceInProgress {
         ]
             .into_iter()
             .filter_map(|(direction, connection)| {
-                if let Some(connection) = connection {
-                    Some((direction, connection))
-                } else {
-                    None
-                }
+                connection.map(|connection| (direction, connection))
             })
             .collect()
     }
@@ -187,7 +183,7 @@ impl CubeFaceInProgress {
         self.up.is_some() && self.left.is_some() && self.down.is_some() && self.right.is_some()
     }
 
-    fn to_cube_face(self) -> CubeFace {
+    fn into_cube_face(self) -> CubeFace {
         CubeFace {
             top_left: self.top_left,
             map: self.map,
@@ -417,7 +413,7 @@ fn split_map_into_cube_faces(map: &Vec<Vec<Space>>) -> Vec<CubeFace> {
         }
     }
 
-    cube_faces_in_progress.into_iter().map(CubeFaceInProgress::to_cube_face).collect()
+    cube_faces_in_progress.into_iter().map(CubeFaceInProgress::into_cube_face).collect()
 }
 
 fn parse_input(input: &str) -> (Vec<Vec<Space>>, Vec<Instruction>) {

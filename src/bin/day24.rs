@@ -74,8 +74,8 @@ struct SearchState {
 impl SearchState {
     // Heuristic function for A* search, lower bound for lowest possible result from this state
     fn optimal_distance(&self) -> usize {
-        let i_distance = (self.target_i as i32 - self.elf_i as i32).abs() as usize;
-        let j_distance = (self.target_j as i32 - self.elf_j as i32).abs() as usize;
+        let i_distance = (self.target_i as i32 - self.elf_i as i32).unsigned_abs() as usize;
+        let j_distance = (self.target_j as i32 - self.elf_j as i32).unsigned_abs() as usize;
         self.iteration + i_distance + j_distance
     }
 }
