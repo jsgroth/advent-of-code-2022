@@ -1,5 +1,6 @@
 //! Day 7: No Space Left On Device
-//! https://adventofcode.com/2022/day/7
+//!
+//! <https://adventofcode.com/2022/day/7>
 
 use std::cell::RefCell;
 use std::collections::HashMap;

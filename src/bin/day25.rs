@@ -1,5 +1,6 @@
 //! Day 25: Full of Hot Air
-//! https://adventofcode.com/2022/day/25
+//!
+//! <https://adventofcode.com/2022/day/25>
 
 fn solve(input: &str) -> String {
     let decimal_sum: i64 = input.lines().map(parse_snafu_number).sum();

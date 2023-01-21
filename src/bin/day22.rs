@@ -1,5 +1,6 @@
 //! Day 22: Monkey Map
-//! https://adventofcode.com/2022/day/22
+//!
+//! <https://adventofcode.com/2022/day/22>
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Space {

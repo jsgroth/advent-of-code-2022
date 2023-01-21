@@ -1,5 +1,6 @@
 //! Day 16: Proboscidea Volcanium
-//! https://adventofcode.com/2022/day/16
+//!
+//! <https://adventofcode.com/2022/day/16>
 
 use std::cmp;
 use std::collections::{HashMap, HashSet, VecDeque};

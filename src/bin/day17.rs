@@ -1,5 +1,6 @@
 //! Day 17: Pyroclastic Flow
-//! https://adventofcode.com/2022/day/17
+//!
+//! <https://adventofcode.com/2022/day/17>
 
 use std::cmp;
 use std::collections::HashMap;

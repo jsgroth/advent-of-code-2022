@@ -1,5 +1,6 @@
 //! Day 1: Calorie Counting
-//! https://adventofcode.com/2022/day/1
+//!
+//! <https://adventofcode.com/2022/day/1>
 
 fn solve(input: &str) -> i32 {
     let lines: Vec<_> = input.lines().collect();
