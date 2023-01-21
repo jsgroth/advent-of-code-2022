@@ -33,9 +33,7 @@ fn solve(input: &str) -> i32 {
         .enumerate()
         .skip(START_COUNTING_CYCLE - 1)
         .step_by(COUNTING_CYCLE_STEP)
-        .fold(0, |acc, (i, x)| {
-            acc + x * ((i as i32) + 1)
-        })
+        .fold(0, |acc, (i, x)| acc + x * ((i as i32) + 1))
 }
 
 fn solve_part_2(input: &str) -> String {
@@ -60,16 +58,15 @@ fn solve_part_2(input: &str) -> String {
 
 // Returns an iterator over the value of X at each cycle
 fn generate_values_iter(input: &str) -> impl Iterator<Item = i32> + '_ {
-    input.lines()
+    input
+        .lines()
         .map(Instruction::from_line)
-        .scan(INITIAL_REGISTER_VALUE, |x, instruction| {
-            match instruction {
-                Instruction::Noop => Some(vec![*x]),
-                Instruction::Addx(operand) => {
-                    let result = vec![*x; 2];
-                    *x += operand;
-                    Some(result)
-                }
+        .scan(INITIAL_REGISTER_VALUE, |x, instruction| match instruction {
+            Instruction::Noop => Some(vec![*x]),
+            Instruction::Addx(operand) => {
+                let result = vec![*x; 2];
+                *x += operand;
+                Some(result)
             }
         })
         .flatten()

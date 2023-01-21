@@ -25,8 +25,13 @@ impl Directory {
         self.file_sizes.push(file_size);
     }
 
-    fn add_subdirectory(&mut self, name: String, subdirectory: Directory) -> Option<Rc<RefCell<Directory>>> {
-        self.subdirectories.insert(name, Rc::new(RefCell::new(subdirectory)))
+    fn add_subdirectory(
+        &mut self,
+        name: String,
+        subdirectory: Directory,
+    ) -> Option<Rc<RefCell<Directory>>> {
+        self.subdirectories
+            .insert(name, Rc::new(RefCell::new(subdirectory)))
     }
 
     fn get_subdirectory(&self, name: &str) -> Option<Rc<RefCell<Directory>>> {
@@ -62,17 +67,19 @@ fn solve(input: &str) -> (u32, u32) {
     let root_dir = parse_input(input);
 
     let total_sizes = root_dir.borrow().get_all_total_sizes();
-    let solution1 = total_sizes.iter().copied()
+    let solution1 = total_sizes
+        .iter()
+        .copied()
         .filter(|&size| size <= PART_1_MAX_DIRECTORY_SIZE)
         .sum();
 
     let root_dir_total_size = total_sizes.last().unwrap();
 
     let target_space = PART_2_DISK_SIZE - PART_2_TARGET_FREE_SPACE;
-    let solution2 = total_sizes.iter().copied()
-        .filter(|&size| {
-           root_dir_total_size - size <= target_space
-        })
+    let solution2 = total_sizes
+        .iter()
+        .copied()
+        .filter(|&size| root_dir_total_size - size <= target_space)
         .min()
         .unwrap();
 
@@ -93,26 +100,39 @@ fn parse_input(input: &str) -> Rc<RefCell<Directory>> {
         let command = split.next().expect("expecting cd or ls command after $");
         match command {
             "cd" => {
-                let dir_name = split.next().expect("should be a directory name after cd command");
+                let dir_name = split
+                    .next()
+                    .expect("should be a directory name after cd command");
                 current_dir = handle_cd_command(&current_dir, dir_name);
             }
             "ls" => {
                 let ls_output = collect_ls_output(&mut lines);
                 handle_ls_command(&mut current_dir, &ls_output);
             }
-            _ => panic!("only supported commands are cd and ls; command={command}")
+            _ => panic!("only supported commands are cd and ls; command={command}"),
         }
     }
 
     root_dir
 }
 
-fn handle_cd_command(current_dir: &Rc<RefCell<Directory>>, dir_name: &str) -> Rc<RefCell<Directory>> {
+fn handle_cd_command(
+    current_dir: &Rc<RefCell<Directory>>,
+    dir_name: &str,
+) -> Rc<RefCell<Directory>> {
     if dir_name == ".." {
-        current_dir.borrow().parent_directory.as_ref().expect("should not be in root directory")
-            .upgrade().expect("parent directory should not have been deallocated")
+        current_dir
+            .borrow()
+            .parent_directory
+            .as_ref()
+            .expect("should not be in root directory")
+            .upgrade()
+            .expect("parent directory should not have been deallocated")
     } else {
-        current_dir.borrow().get_subdirectory(dir_name).expect("current dir should have the given subdirectory")
+        current_dir
+            .borrow()
+            .get_subdirectory(dir_name)
+            .expect("current dir should have the given subdirectory")
     }
 }
 
@@ -135,10 +155,16 @@ where
 
 fn handle_ls_command(current_dir: &mut Rc<RefCell<Directory>>, ls_output: &[&str]) {
     for line in ls_output {
-        let (size, name) = line.split_once(' ').expect("line in ls output should have one space");
+        let (size, name) = line
+            .split_once(' ')
+            .expect("line in ls output should have one space");
         if size == "dir" {
             let directory = Directory::new(Some(Rc::downgrade(current_dir)));
-            if current_dir.borrow_mut().add_subdirectory(String::from(name), directory).is_some() {
+            if current_dir
+                .borrow_mut()
+                .add_subdirectory(String::from(name), directory)
+                .is_some()
+            {
                 panic!("directory {} already exists in current directory", name);
             }
         } else {

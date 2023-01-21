@@ -4,37 +4,43 @@
 use std::collections::HashSet;
 
 fn solve(input: &str) -> u32 {
-    input.lines().map(|line| {
-        let (lhalf, rhalf) = line.split_at(line.len() / 2);
+    input
+        .lines()
+        .map(|line| {
+            let (lhalf, rhalf) = line.split_at(line.len() / 2);
 
-        let lchars: HashSet<_> = lhalf.chars().collect();
+            let lchars: HashSet<_> = lhalf.chars().collect();
 
-        let c = rhalf.chars().find(|c| {
-            lchars.contains(c)
-        }).expect("there should be a character in both l and r");
+            let c = rhalf
+                .chars()
+                .find(|c| lchars.contains(c))
+                .expect("there should be a character in both l and r");
 
-        priority(c)
-    })
+            priority(c)
+        })
         .sum()
 }
 
 fn solve_part_2(input: &str) -> u32 {
     let lines: Vec<_> = input.lines().collect();
-    lines.chunks(3).map(|chunk| {
-        let [a, b, c] = match chunk {
-            [a, b, c] => [a, b, c],
-            _ => panic!("the number of lines should be a multiple of 3"),
-        };
+    lines
+        .chunks(3)
+        .map(|chunk| {
+            let [a, b, c] = match chunk {
+                [a, b, c] => [a, b, c],
+                _ => panic!("the number of lines should be a multiple of 3"),
+            };
 
-        let achars: HashSet<_> = a.chars().collect();
-        let bchars: HashSet<_> = b.chars().collect();
+            let achars: HashSet<_> = a.chars().collect();
+            let bchars: HashSet<_> = b.chars().collect();
 
-        let ch = c.chars().find(|ch| {
-            achars.contains(ch) && bchars.contains(ch)
-        }).expect("there should a be a character in all three lines");
+            let ch = c
+                .chars()
+                .find(|ch| achars.contains(ch) && bchars.contains(ch))
+                .expect("there should a be a character in all three lines");
 
-        priority(ch)
-    })
+            priority(ch)
+        })
         .sum()
 }
 

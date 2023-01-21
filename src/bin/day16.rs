@@ -80,7 +80,13 @@ struct ElephantFindParameters<'a> {
 }
 
 impl<'a> ElephantFindParameters<'a> {
-    fn new(graph: &'a CaveGraph, path_lengths: &'a Vec<Vec<u32>>, you_start: usize, elephant_start: usize, remaining: u32) -> Self {
+    fn new(
+        graph: &'a CaveGraph,
+        path_lengths: &'a Vec<Vec<u32>>,
+        you_start: usize,
+        elephant_start: usize,
+        remaining: u32,
+    ) -> Self {
         Self {
             graph,
             path_lengths,
@@ -109,7 +115,15 @@ fn solve(input: &str) -> (u32, u32) {
     let path_lengths = find_path_lengths(&graph, START_VALVE_NAME);
 
     let start_index = *graph.name_to_index.get(START_VALVE_NAME).unwrap();
-    let part_1_solution = find_best_path(&graph, &path_lengths, start_index, HashSet::new(), TURN_LIMIT_WITHOUT_ELEPHANT, 0, 0);
+    let part_1_solution = find_best_path(
+        &graph,
+        &path_lengths,
+        start_index,
+        HashSet::new(),
+        TURN_LIMIT_WITHOUT_ELEPHANT,
+        0,
+        0,
+    );
 
     let elephant_find_parameters = ElephantFindParameters::new(
         &graph,
@@ -118,7 +132,10 @@ fn solve(input: &str) -> (u32, u32) {
         start_index,
         TURN_LIMIT_WITH_ELEPHANT,
     );
-    let part_2_solution = cmp::max(part_1_solution, find_with_elephant(elephant_find_parameters, &mut 0));
+    let part_2_solution = cmp::max(
+        part_1_solution,
+        find_with_elephant(elephant_find_parameters, &mut 0),
+    );
 
     (part_1_solution, part_2_solution)
 }
@@ -128,8 +145,16 @@ fn solve(input: &str) -> (u32, u32) {
 fn find_path_lengths(graph: &CaveGraph, start_node: &str) -> Vec<Vec<u32>> {
     let mut result = vec![vec![0; graph.valves.len()]; graph.valves.len()];
 
-    for valve in graph.valves.iter().filter(|valve| valve.name == start_node || valve.flow_rate > 0) {
-        for other_valve in graph.valves.iter().filter(|other_valve| valve.index != other_valve.index && other_valve.flow_rate > 0) {
+    for valve in graph
+        .valves
+        .iter()
+        .filter(|valve| valve.name == start_node || valve.flow_rate > 0)
+    {
+        for other_valve in graph
+            .valves
+            .iter()
+            .filter(|other_valve| valve.index != other_valve.index && other_valve.flow_rate > 0)
+        {
             let distance = find_shortest_path(graph, valve.index, other_valve.index);
             result[valve.index][other_valve.index] = distance;
         }
@@ -197,10 +222,7 @@ fn find_best_path(
     result
 }
 
-fn find_with_elephant(
-    parameters: ElephantFindParameters,
-    max_so_far: &mut u32,
-) -> u32 {
+fn find_with_elephant(parameters: ElephantFindParameters, max_so_far: &mut u32) -> u32 {
     if *max_so_far >= compute_max_possible(&parameters) {
         // Break early, the upper bound for this path is lower than the best we've seen so far
         return u32::MIN;
@@ -278,23 +300,35 @@ fn find_with_elephant(
         };
 
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
-    } else if your_remaining_to_target > 0 && (elephant_stopped || your_remaining_to_target <= elephant_remaining_to_target) {
+    } else if your_remaining_to_target > 0
+        && (elephant_stopped || your_remaining_to_target <= elephant_remaining_to_target)
+    {
         // Advance time so that you reach your current target
 
         let new_parameters = ElephantFindParameters {
             your_remaining_to_target: 0,
-            elephant_remaining_to_target: if !elephant_stopped { elephant_remaining_to_target - your_remaining_to_target } else { 0 },
+            elephant_remaining_to_target: if !elephant_stopped {
+                elephant_remaining_to_target - your_remaining_to_target
+            } else {
+                0
+            },
             remaining: remaining - your_remaining_to_target,
             current_total: current_total + your_remaining_to_target * current_running,
             ..parameters
         };
 
         result = cmp::max(result, find_with_elephant(new_parameters, max_so_far));
-    } else if elephant_remaining_to_target > 0 && (you_stopped || elephant_remaining_to_target <= your_remaining_to_target) {
+    } else if elephant_remaining_to_target > 0
+        && (you_stopped || elephant_remaining_to_target <= your_remaining_to_target)
+    {
         // Advance time so that the elephant reaches its current target
 
         let new_parameters = ElephantFindParameters {
-            your_remaining_to_target: if !you_stopped { your_remaining_to_target - elephant_remaining_to_target } else { 0 },
+            your_remaining_to_target: if !you_stopped {
+                your_remaining_to_target - elephant_remaining_to_target
+            } else {
+                0
+            },
             elephant_remaining_to_target: 0,
             remaining: remaining - elephant_remaining_to_target,
             current_total: current_total + elephant_remaining_to_target * current_running,
@@ -333,18 +367,29 @@ fn compute_max_possible(parameters: &ElephantFindParameters) -> u32 {
         total += (remaining - your_remaining_to_target) * graph.valves[your_target].flow_rate;
     }
     if !elephant_stopped {
-        total += (remaining - elephant_remaining_to_target) * graph.valves[elephant_target].flow_rate;
+        total +=
+            (remaining - elephant_remaining_to_target) * graph.valves[elephant_target].flow_rate;
     }
 
-    let unvisited_indices: Vec<_> = graph.valves_with_flow.iter()
+    let unvisited_indices: Vec<_> = graph
+        .valves_with_flow
+        .iter()
         .copied()
         .filter(|index| !visited.contains(index))
         .collect();
 
     for &index in &unvisited_indices {
         let earliest_possible = cmp::min(
-            if !you_stopped { your_remaining_to_target + path_lengths[your_target][index] + 1 } else { u32::MAX },
-            if !elephant_stopped { elephant_remaining_to_target + path_lengths[elephant_target][index] + 1 } else { u32::MAX },
+            if !you_stopped {
+                your_remaining_to_target + path_lengths[your_target][index] + 1
+            } else {
+                u32::MAX
+            },
+            if !elephant_stopped {
+                elephant_remaining_to_target + path_lengths[elephant_target][index] + 1
+            } else {
+                u32::MAX
+            },
         );
         total += remaining.saturating_sub(earliest_possible) * graph.valves[index].flow_rate;
     }
@@ -364,11 +409,13 @@ fn parse_input(input: &str) -> CaveGraph {
         split.next();
 
         let flow_rate = split.next().expect("flow rate");
-        let flow_rate = flow_rate["rate=".len()..flow_rate.len() - 1].parse().expect("flow rate should be an integer");
+        let flow_rate = flow_rate["rate=".len()..flow_rate.len() - 1]
+            .parse()
+            .expect("flow rate should be an integer");
 
-        let tunnels: Vec<_> = split.skip(4).map(|tunnel| {
-            tunnel.strip_suffix(',').unwrap_or(tunnel)
-        })
+        let tunnels: Vec<_> = split
+            .skip(4)
+            .map(|tunnel| tunnel.strip_suffix(',').unwrap_or(tunnel))
             .collect();
 
         graph.add_valve(&name, flow_rate, &tunnels);

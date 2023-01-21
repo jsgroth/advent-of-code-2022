@@ -46,10 +46,12 @@ impl<T: Copy + Default> Shifted3dGrid<T> {
         let y = y + self.y_shift;
         let z = z + self.z_shift;
 
-        if x >= 0 && y >= 0 && z >= 0 &&
-            x < self.grid.len() as i32 &&
-            y < self.grid[0].len() as i32 &&
-            z < self.grid[0][0].len() as i32
+        if x >= 0
+            && y >= 0
+            && z >= 0
+            && x < self.grid.len() as i32
+            && y < self.grid[0].len() as i32
+            && z < self.grid[0][0].len() as i32
         {
             Some(self.grid[x as usize][y as usize][z as usize])
         } else {
@@ -65,18 +67,31 @@ impl<T: Copy + Default> Shifted3dGrid<T> {
     }
 }
 
-const DIRECTIONS: [(i32, i32, i32); 6] = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)];
+const DIRECTIONS: [(i32, i32, i32); 6] = [
+    (1, 0, 0),
+    (-1, 0, 0),
+    (0, 1, 0),
+    (0, -1, 0),
+    (0, 0, 1),
+    (0, 0, -1),
+];
 
 fn solve(input: &str) -> usize {
     let cubes = parse_input(input);
 
     let cubes_set: HashSet<_> = cubes.iter().copied().collect();
 
-    cubes.iter().map(|cube| {
-        DIRECTIONS.iter().filter(|&(dx, dy, dz)| {
-            !cubes_set.contains(&Cube::new(cube.x + dx, cube.y + dy, cube.z + dz))
-        }).count()
-    }).sum()
+    cubes
+        .iter()
+        .map(|cube| {
+            DIRECTIONS
+                .iter()
+                .filter(|&(dx, dy, dz)| {
+                    !cubes_set.contains(&Cube::new(cube.x + dx, cube.y + dy, cube.z + dz))
+                })
+                .count()
+        })
+        .sum()
 }
 
 fn solve_part_2(input: &str) -> usize {
@@ -88,13 +103,23 @@ fn solve_part_2(input: &str) -> usize {
     let (max_x, max_y, max_z) = get_maximums(&cubes);
 
     let mut water_grid = Shifted3dGrid::new(min_x, max_x, min_y, max_y, min_z, max_z);
-    floodfill_3d(&mut water_grid, &cubes_set, Cube::new(min_x - 1, min_y - 1, min_z - 1));
+    floodfill_3d(
+        &mut water_grid,
+        &cubes_set,
+        Cube::new(min_x - 1, min_y - 1, min_z - 1),
+    );
 
-    cubes.iter().map(|cube| {
-        DIRECTIONS.iter().filter(|&(dx, dy, dz)| {
-            water_grid.get(cube.x + dx, cube.y + dy, cube.z + dz) == Some(true)
-        }).count()
-    }).sum()
+    cubes
+        .iter()
+        .map(|cube| {
+            DIRECTIONS
+                .iter()
+                .filter(|&(dx, dy, dz)| {
+                    water_grid.get(cube.x + dx, cube.y + dy, cube.z + dz) == Some(true)
+                })
+                .count()
+        })
+        .sum()
 }
 
 fn floodfill_3d(shifted_grid: &mut Shifted3dGrid<bool>, cubes: &HashSet<Cube>, start: Cube) {
@@ -106,7 +131,9 @@ fn floodfill_3d(shifted_grid: &mut Shifted3dGrid<bool>, cubes: &HashSet<Cube>, s
         let cube = queue.pop_front().unwrap();
         for (dx, dy, dz) in DIRECTIONS {
             let new_cube = Cube::new(cube.x + dx, cube.y + dy, cube.z + dz);
-            if !cubes.contains(&new_cube) && shifted_grid.get(new_cube.x, new_cube.y, new_cube.z) == Some(false) {
+            if !cubes.contains(&new_cube)
+                && shifted_grid.get(new_cube.x, new_cube.y, new_cube.z) == Some(false)
+            {
                 shifted_grid.set(new_cube.x, new_cube.y, new_cube.z, true);
                 queue.push_back(new_cube);
             }
@@ -115,24 +142,41 @@ fn floodfill_3d(shifted_grid: &mut Shifted3dGrid<bool>, cubes: &HashSet<Cube>, s
 }
 
 fn get_minimums(cubes: &[Cube]) -> (i32, i32, i32) {
-    cubes.iter().fold((i32::MAX, i32::MAX, i32::MAX), |(min_x, min_y, min_z), cube| {
-        (cmp::min(min_x, cube.x), cmp::min(min_y, cube.y), cmp::min(min_z, cube.z))
-    })
+    cubes.iter().fold(
+        (i32::MAX, i32::MAX, i32::MAX),
+        |(min_x, min_y, min_z), cube| {
+            (
+                cmp::min(min_x, cube.x),
+                cmp::min(min_y, cube.y),
+                cmp::min(min_z, cube.z),
+            )
+        },
+    )
 }
 
 fn get_maximums(cubes: &[Cube]) -> (i32, i32, i32) {
-    cubes.iter().fold((i32::MIN, i32::MIN, i32::MIN), |(max_x, max_y, max_z), cube| {
-        (cmp::max(max_x, cube.x), cmp::max(max_y, cube.y), cmp::max(max_z, cube.z))
-    })
+    cubes.iter().fold(
+        (i32::MIN, i32::MIN, i32::MIN),
+        |(max_x, max_y, max_z), cube| {
+            (
+                cmp::max(max_x, cube.x),
+                cmp::max(max_y, cube.y),
+                cmp::max(max_z, cube.z),
+            )
+        },
+    )
 }
 
 fn parse_input(input: &str) -> Vec<Cube> {
-    input.lines().map(|line| {
-        let split: Vec<_> = line.split(',')
-            .map(|s| s.parse::<i32>().expect("coordinate should be an integer"))
-            .collect();
-        Cube::new(split[0], split[1], split[2])
-    })
+    input
+        .lines()
+        .map(|line| {
+            let split: Vec<_> = line
+                .split(',')
+                .map(|s| s.parse::<i32>().expect("coordinate should be an integer"))
+                .collect();
+            Cube::new(split[0], split[1], split[2])
+        })
         .collect()
 }
 

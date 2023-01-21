@@ -100,7 +100,9 @@ impl TetrisChamber {
     }
 
     fn contains(&self, p: &Point) -> bool {
-        self.occupied_points[p.x as usize].binary_search(&p.y).is_ok()
+        self.occupied_points[p.x as usize]
+            .binary_search(&p.y)
+            .is_ok()
     }
 
     fn insert(&mut self, p: &Point) {
@@ -121,15 +123,22 @@ impl TetrisChamber {
     // Find the column with the lowest max height, then return all points at or higher than that
     // height with their heights normalized to the lowest max
     fn determine_highest_points(&self) -> Vec<Point> {
-        let lowest_max = self.occupied_points.iter()
+        let lowest_max = self
+            .occupied_points
+            .iter()
             .map(|col| col.last().copied().unwrap_or(0))
             .min()
             .unwrap();
 
-        let mut result: Vec<_> = self.occupied_points.iter().enumerate()
+        let mut result: Vec<_> = self
+            .occupied_points
+            .iter()
+            .enumerate()
             .flat_map(|(x, col)| {
                 let x = x as i64;
-                col.iter().rev().copied()
+                col.iter()
+                    .rev()
+                    .copied()
                     .map_while(|y| {
                         if y >= lowest_max {
                             Some(Point::new(x, y - lowest_max))
@@ -169,7 +178,10 @@ fn solve(input: &str) -> i64 {
     let mut tetris_chamber = TetrisChamber::new();
 
     for _ in 0..PART_1_TO_DROP {
-        let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
+        let mut tetronimo = tetronimo_type_iter
+            .next()
+            .unwrap()
+            .new_tetronimo(2, tower_height + 4);
 
         tetronimo = drop_tetronimo(tetronimo, &tetris_chamber, &mut jet_iter);
 
@@ -189,10 +201,14 @@ fn solve_part_2(input: &str) -> i64 {
     let mut tower_height = 0;
     let mut tetris_chamber = TetrisChamber::new();
 
-    let mut repitition_detection_map: HashMap<RepititionDetectionKey, (usize, i64)> = HashMap::new();
+    let mut repitition_detection_map: HashMap<RepititionDetectionKey, (usize, i64)> =
+        HashMap::new();
 
     for i in 1.. {
-        let mut tetronimo = tetronimo_type_iter.next().unwrap().new_tetronimo(2, tower_height + 4);
+        let mut tetronimo = tetronimo_type_iter
+            .next()
+            .unwrap()
+            .new_tetronimo(2, tower_height + 4);
 
         tetronimo = drop_tetronimo(tetronimo, &tetris_chamber, &mut jet_iter);
 
@@ -201,7 +217,11 @@ fn solve_part_2(input: &str) -> i64 {
 
         let highest_points = tetris_chamber.determine_highest_points();
         let &(jet_stream_index, _) = jet_iter.peek().unwrap();
-        let key = RepititionDetectionKey { highest_points, jet_stream_index, tetronimo_type_index: i % 5 };
+        let key = RepititionDetectionKey {
+            highest_points,
+            jet_stream_index,
+            tetronimo_type_index: i % 5,
+        };
         if let Some(&(earlier_iteration, earlier_height)) = repitition_detection_map.get(&key) {
             let i = i as i64;
             let earlier_iteration = earlier_iteration as i64;
@@ -219,7 +239,11 @@ fn solve_part_2(input: &str) -> i64 {
     panic!("no solution found");
 }
 
-fn drop_tetronimo(tetronimo: Tetronimo, tetris_chamber: &TetrisChamber, jet_iter: &mut impl Iterator<Item = (usize, i64)>) -> Tetronimo {
+fn drop_tetronimo(
+    tetronimo: Tetronimo,
+    tetris_chamber: &TetrisChamber,
+    jet_iter: &mut impl Iterator<Item = (usize, i64)>,
+) -> Tetronimo {
     let mut tetronimo = tetronimo;
 
     loop {
@@ -237,13 +261,22 @@ fn drop_tetronimo(tetronimo: Tetronimo, tetris_chamber: &TetrisChamber, jet_iter
     tetronimo
 }
 
-fn try_move(tetronimo: &Tetronimo, tetris_chamber: &TetrisChamber, dx: i64, dy: i64) -> Option<Tetronimo> {
+fn try_move(
+    tetronimo: &Tetronimo,
+    tetris_chamber: &TetrisChamber,
+    dx: i64,
+    dy: i64,
+) -> Option<Tetronimo> {
     let mut new_points = Vec::with_capacity(tetronimo.points.len());
 
     for point in &tetronimo.points {
         let new_point = Point::new(point.x + dx, point.y + dy);
 
-        if new_point.x < 0 || new_point.x >= CHAMBER_WIDTH || new_point.y <= 0 || tetris_chamber.contains(&new_point) {
+        if new_point.x < 0
+            || new_point.x >= CHAMBER_WIDTH
+            || new_point.y <= 0
+            || tetris_chamber.contains(&new_point)
+        {
             return None;
         }
         new_points.push(new_point);
@@ -253,13 +286,14 @@ fn try_move(tetronimo: &Tetronimo, tetris_chamber: &TetrisChamber, dx: i64, dy: 
 }
 
 fn repeating_jet_iterator(line: &str) -> impl Iterator<Item = (usize, i64)> + '_ {
-    line.chars().map(|c| {
-        match c {
+    line.chars()
+        .map(|c| match c {
             '<' => -1,
             '>' => 1,
             _ => panic!("unexpected character in jet stream: {c}"),
-        }
-    }).enumerate().cycle()
+        })
+        .enumerate()
+        .cycle()
 }
 
 fn repeating_tetronimo_type_iterator() -> impl Iterator<Item = TetronimoType> {
@@ -269,7 +303,9 @@ fn repeating_tetronimo_type_iterator() -> impl Iterator<Item = TetronimoType> {
         TetronimoType::BackwardsL,
         TetronimoType::Line,
         TetronimoType::Square,
-    ].into_iter().cycle()
+    ]
+    .into_iter()
+    .cycle()
 }
 
 fn main() {

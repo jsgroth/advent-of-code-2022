@@ -5,11 +5,30 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 enum Monkey {
-    Constant { name: String, n: i64 },
-    Add { name: String, a: Box<Monkey>, b: Box<Monkey> },
-    Subtract { name: String, a: Box<Monkey>, b: Box<Monkey> },
-    Multiply { name: String, a: Box<Monkey>, b: Box<Monkey> },
-    Divide { name: String, a: Box<Monkey>, b: Box<Monkey> },
+    Constant {
+        name: String,
+        n: i64,
+    },
+    Add {
+        name: String,
+        a: Box<Monkey>,
+        b: Box<Monkey>,
+    },
+    Subtract {
+        name: String,
+        a: Box<Monkey>,
+        b: Box<Monkey>,
+    },
+    Multiply {
+        name: String,
+        a: Box<Monkey>,
+        b: Box<Monkey>,
+    },
+    Divide {
+        name: String,
+        a: Box<Monkey>,
+        b: Box<Monkey>,
+    },
 }
 
 impl Monkey {
@@ -18,13 +37,14 @@ impl Monkey {
 
         let split: Vec<_> = line.split(' ').collect();
         match split.as_slice() {
-            [n] => {
-                Self::Constant { name, n: n.parse().expect("single word should be an integer") }
-            }
+            [n] => Self::Constant {
+                name,
+                n: n.parse().expect("single word should be an integer"),
+            },
             [a, op, b] => {
                 let a = Box::new(Self::from_line(a, all_lines.get(a).unwrap(), all_lines));
                 let b = Box::new(Self::from_line(b, all_lines.get(b).unwrap(), all_lines));
-                
+
                 match *op {
                     "+" => Self::Add { name, a, b },
                     "-" => Self::Subtract { name, a, b },
@@ -55,10 +75,10 @@ impl Monkey {
 
         match self {
             Self::Constant { .. } => false,
-            Self::Add { name, a, b } |
-            Self::Subtract { name, a, b } |
-            Self::Multiply { name, a, b } |
-            Self::Divide { name, a, b } => {
+            Self::Add { name, a, b }
+            | Self::Subtract { name, a, b }
+            | Self::Multiply { name, a, b }
+            | Self::Divide { name, a, b } => {
                 if a.find_human_path(human_path) || b.find_human_path(human_path) {
                     human_path.insert(name.as_str());
                     true
@@ -111,13 +131,11 @@ impl Monkey {
 
     fn get_name(&self) -> &str {
         match self {
-            Self::Constant { name, .. } |
-            Self::Add { name, .. } |
-            Self::Subtract { name, .. } |
-            Self::Multiply { name, .. } |
-            Self::Divide { name, .. } => {
-                name
-            }
+            Self::Constant { name, .. }
+            | Self::Add { name, .. }
+            | Self::Subtract { name, .. }
+            | Self::Multiply { name, .. }
+            | Self::Divide { name, .. } => name,
         }
     }
 }
@@ -135,28 +153,36 @@ fn solve_part_2(input: &str) -> i64 {
     root_monkey.find_human_path(&mut human_path);
 
     match &root_monkey {
-        Monkey::Add { a, b, .. } | Monkey::Subtract { a, b, .. } |
-        Monkey::Multiply { a, b, .. } | Monkey::Divide { a, b, .. } => {
+        Monkey::Add { a, b, .. }
+        | Monkey::Subtract { a, b, .. }
+        | Monkey::Multiply { a, b, .. }
+        | Monkey::Divide { a, b, .. } => {
             if human_path.contains(a.get_name()) {
                 a.solve_for_human(b.evaluate(), &human_path)
             } else {
                 b.solve_for_human(a.evaluate(), &human_path)
             }
         }
-        _ => panic!("root monkey should not be a constant")
+        _ => panic!("root monkey should not be a constant"),
     }
 }
 
 fn parse_input(input: &str) -> Monkey {
-    let lines_by_name: HashMap<_, _> = input.lines().map(|line| {
-        let (name, rest_of_line) = line.split_once(' ').expect("every line should have a space");
-        let name = &name[..name.len() - 1];
+    let lines_by_name: HashMap<_, _> = input
+        .lines()
+        .map(|line| {
+            let (name, rest_of_line) = line
+                .split_once(' ')
+                .expect("every line should have a space");
+            let name = &name[..name.len() - 1];
 
-        (name, rest_of_line)
-    })
+            (name, rest_of_line)
+        })
         .collect();
 
-    let root_line = lines_by_name.get("root").expect("input should have a root line");
+    let root_line = lines_by_name
+        .get("root")
+        .expect("input should have a root line");
     Monkey::from_line("root", root_line, &lines_by_name)
 }
 

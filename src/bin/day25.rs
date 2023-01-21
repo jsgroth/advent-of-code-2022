@@ -8,14 +8,17 @@ fn solve(input: &str) -> String {
 }
 
 fn parse_snafu_number(line: &str) -> i64 {
-    line.chars().rev().enumerate().map(|(i, c)| {
-        let digit: i64 = match c {
-            '=' => -2,
-            '-' => -1,
-            _ => (c as i64) - ('0' as i64)
-        };
-        digit * 5_i64.pow(i as u32)
-    })
+    line.chars()
+        .rev()
+        .enumerate()
+        .map(|(i, c)| {
+            let digit: i64 = match c {
+                '=' => -2,
+                '-' => -1,
+                _ => (c as i64) - ('0' as i64),
+            };
+            digit * 5_i64.pow(i as u32)
+        })
         .sum()
 }
 

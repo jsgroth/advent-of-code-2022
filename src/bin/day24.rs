@@ -27,35 +27,19 @@ impl Blizzard {
     fn move_once(&self, rows: usize, cols: usize) -> Self {
         match self.direction {
             Direction::Up => {
-                let i = if self.i == 1 {
-                    rows - 2
-                } else {
-                    self.i - 1
-                };
+                let i = if self.i == 1 { rows - 2 } else { self.i - 1 };
                 Self::new(self.direction, i, self.j)
             }
             Direction::Left => {
-                let j = if self.j == 1 {
-                    cols - 2
-                } else {
-                    self.j - 1
-                };
+                let j = if self.j == 1 { cols - 2 } else { self.j - 1 };
                 Self::new(self.direction, self.i, j)
             }
             Direction::Right => {
-                let j = if self.j == cols - 2 {
-                    1
-                } else {
-                    self.j + 1
-                };
+                let j = if self.j == cols - 2 { 1 } else { self.j + 1 };
                 Self::new(self.direction, self.i, j)
             }
             Direction::Down => {
-                let i = if self.i == rows - 2 {
-                    1
-                } else {
-                    self.i + 1
-                };
+                let i = if self.i == rows - 2 { 1 } else { self.i + 1 };
                 Self::new(self.direction, i, self.j)
             }
         }
@@ -89,7 +73,9 @@ impl PartialOrd<Self> for SearchState {
 impl Ord for SearchState {
     fn cmp(&self, other: &Self) -> Ordering {
         // Reverse so that smaller ends up on top of heap
-        self.optimal_distance().cmp(&other.optimal_distance()).reverse()
+        self.optimal_distance()
+            .cmp(&other.optimal_distance())
+            .reverse()
     }
 }
 
@@ -98,13 +84,31 @@ fn solve(input: &str) -> (usize, usize) {
     let rows = initial_grid.len();
     let cols = initial_grid[0].len();
 
-    let initial_state = SearchState { elf_i: 0, elf_j: 1, iteration: 0, target_i: rows - 2, target_j: cols - 2 };
+    let initial_state = SearchState {
+        elf_i: 0,
+        elf_j: 1,
+        iteration: 0,
+        target_i: rows - 2,
+        target_j: cols - 2,
+    };
     let first_step = find_shortest_distance(&initial_grid, initial_state);
 
-    let second_state = SearchState { elf_i: rows - 1, elf_j: cols - 2, iteration: first_step - 1, target_i: 1, target_j: 1 };
+    let second_state = SearchState {
+        elf_i: rows - 1,
+        elf_j: cols - 2,
+        iteration: first_step - 1,
+        target_i: 1,
+        target_j: 1,
+    };
     let second_step = find_shortest_distance(&initial_grid, second_state);
 
-    let final_state = SearchState { elf_i: 0, elf_j: 1, iteration: second_step - 1, target_i: rows - 2, target_j: cols - 2 };
+    let final_state = SearchState {
+        elf_i: 0,
+        elf_j: 1,
+        iteration: second_step - 1,
+        target_i: rows - 2,
+        target_j: cols - 2,
+    };
     let final_step = find_shortest_distance(&initial_grid, final_state);
 
     (first_step, final_step)
@@ -114,7 +118,9 @@ fn find_shortest_distance(
     initial_grid: &Vec<Vec<Vec<Blizzard>>>,
     initial_state: SearchState,
 ) -> usize {
-    let SearchState { target_i, target_j, .. } = initial_state;
+    let SearchState {
+        target_i, target_j, ..
+    } = initial_state;
 
     let rows = initial_grid.len();
     let cols = initial_grid[0].len();
@@ -126,7 +132,12 @@ fn find_shortest_distance(
     let mut checked_states: HashSet<SearchState> = HashSet::new();
 
     while !queue.is_empty() {
-        let SearchState { elf_i, elf_j, iteration, .. } = queue.pop().unwrap();
+        let SearchState {
+            elf_i,
+            elf_j,
+            iteration,
+            ..
+        } = queue.pop().unwrap();
 
         while grids.len() - 1 < iteration + 1 {
             grids.push(move_blizzards(grids.last().unwrap()));
@@ -157,7 +168,13 @@ fn find_shortest_distance(
                 return iteration + 2;
             }
 
-            let new_state = SearchState { elf_i: new_i, elf_j: new_j, iteration: iteration + 1, target_i, target_j };
+            let new_state = SearchState {
+                elf_i: new_i,
+                elf_j: new_j,
+                iteration: iteration + 1,
+                target_i,
+                target_j,
+            };
             if !checked_states.contains(&new_state) {
                 checked_states.insert(new_state.clone());
                 queue.push(new_state);
@@ -187,7 +204,11 @@ fn move_blizzards(grid: &Vec<Vec<Vec<Blizzard>>>) -> Vec<Vec<Vec<Blizzard>>> {
 
 fn parse_input(input: &str) -> Vec<Vec<Vec<Blizzard>>> {
     let rows = input.lines().count();
-    let cols = input.lines().next().expect("input should not be empty").len();
+    let cols = input
+        .lines()
+        .next()
+        .expect("input should not be empty")
+        .len();
 
     let mut grid: Vec<Vec<Vec<Blizzard>>> = vec![vec![Vec::new(); cols]; rows];
     for (i, line) in input.lines().enumerate() {
@@ -199,7 +220,7 @@ fn parse_input(input: &str) -> Vec<Vec<Vec<Blizzard>>> {
                         '<' => Direction::Left,
                         '>' => Direction::Right,
                         'v' => Direction::Down,
-                        _ => panic!("unexpected char: {c}")
+                        _ => panic!("unexpected char: {c}"),
                     };
                     grid[i][j].push(Blizzard::new(direction, i, j));
                 }

@@ -26,7 +26,8 @@ impl Range {
 }
 
 fn solve(input: &str) -> usize {
-    input.lines()
+    input
+        .lines()
         .map(parse_input_line)
         .filter(|(left_range, right_range)| {
             left_range.fully_contains(right_range) || right_range.fully_contains(left_range)
@@ -35,11 +36,10 @@ fn solve(input: &str) -> usize {
 }
 
 fn solve_part_2(input: &str) -> usize {
-    input.lines()
+    input
+        .lines()
         .map(parse_input_line)
-        .filter(|(left_range, right_range)| {
-            left_range.overlaps(right_range)
-        })
+        .filter(|(left_range, right_range)| left_range.overlaps(right_range))
         .count()
 }
 

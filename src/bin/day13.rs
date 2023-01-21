@@ -19,13 +19,11 @@ impl PartialOrd<Self> for ListItem {
 impl Ord for ListItem {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (Self::Int(a), Self::Int(b)) => {
-                a.cmp(b)
-            }
+            (Self::Int(a), Self::Int(b)) => a.cmp(b),
             (Self::List(a), Self::List(b)) => {
                 for (a_item, b_item) in a.iter().zip(b) {
                     match a_item.cmp(b_item) {
-                        Ordering::Equal => {},
+                        Ordering::Equal => {}
                         ordering => {
                             return ordering;
                         }
@@ -38,9 +36,7 @@ impl Ord for ListItem {
                 let self_as_list = Self::List(vec![self.clone()]);
                 self_as_list.cmp(other)
             }
-            (Self::List(_), Self::Int(_)) => {
-                other.cmp(self).reverse()
-            }
+            (Self::List(_), Self::Int(_)) => other.cmp(self).reverse(),
         }
     }
 }
@@ -48,7 +44,8 @@ impl Ord for ListItem {
 fn solve(input: &str) -> usize {
     let input = parse_input(input);
 
-    input.into_iter()
+    input
+        .into_iter()
         .enumerate()
         .filter(|(_, (a, b))| a.cmp(b).is_le())
         .map(|(i, _)| i + 1)
@@ -58,9 +55,7 @@ fn solve(input: &str) -> usize {
 fn solve_part_2(input: &str) -> usize {
     let input = parse_input(input);
 
-    let mut all_items: Vec<_> = input.into_iter()
-        .flat_map(|(a, b)| vec![a, b])
-        .collect();
+    let mut all_items: Vec<_> = input.into_iter().flat_map(|(a, b)| vec![a, b]).collect();
 
     let divider_packet_2 = ListItem::List(vec![ListItem::List(vec![ListItem::Int(2)])]);
     let divider_packet_6 = ListItem::List(vec![ListItem::List(vec![ListItem::Int(6)])]);
@@ -76,7 +71,8 @@ fn solve_part_2(input: &str) -> usize {
 
 fn parse_input(input: &str) -> Vec<(ListItem, ListItem)> {
     let lines: Vec<_> = input.lines().collect();
-    lines.split(|s| s.is_empty())
+    lines
+        .split(|s| s.is_empty())
         .map(|line_pair| {
             let [a, b] = match line_pair {
                 [a, b] => [a, b],
@@ -86,12 +82,13 @@ fn parse_input(input: &str) -> Vec<(ListItem, ListItem)> {
             let a = parse_list_item(&mut a.chars().peekable());
             let b = parse_list_item(&mut b.chars().peekable());
             (a, b)
-         })
+        })
         .collect()
 }
 
 fn parse_list_item<I>(iter: &mut Peekable<I>) -> ListItem
-where I: Iterator<Item = char>
+where
+    I: Iterator<Item = char>,
 {
     match iter.peek().unwrap() {
         '[' => ListItem::List(parse_list(iter)),
@@ -101,7 +98,8 @@ where I: Iterator<Item = char>
 }
 
 fn parse_int<I>(iter: &mut Peekable<I>) -> ListItem
-where I: Iterator<Item = char>
+where
+    I: Iterator<Item = char>,
 {
     let mut s = String::new();
     while let Some(&c) = iter.peek() {
@@ -115,7 +113,8 @@ where I: Iterator<Item = char>
 }
 
 fn parse_list<I>(iter: &mut Peekable<I>) -> Vec<ListItem>
-    where I: Iterator<Item = char>
+where
+    I: Iterator<Item = char>,
 {
     // Skip '['
     iter.next();

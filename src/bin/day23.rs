@@ -16,39 +16,72 @@ impl Point {
     }
 
     fn nw(&self) -> Self {
-        Self { x: self.x - 1, y: self.y - 1 }
+        Self {
+            x: self.x - 1,
+            y: self.y - 1,
+        }
     }
 
     fn n(&self) -> Self {
-        Self { x: self.x, y: self.y - 1 }
+        Self {
+            x: self.x,
+            y: self.y - 1,
+        }
     }
 
     fn ne(&self) -> Self {
-        Self { x: self.x + 1, y: self.y - 1 }
+        Self {
+            x: self.x + 1,
+            y: self.y - 1,
+        }
     }
 
     fn w(&self) -> Self {
-        Self { x: self.x - 1, y: self.y }
+        Self {
+            x: self.x - 1,
+            y: self.y,
+        }
     }
 
     fn e(&self) -> Self {
-        Self { x: self.x + 1, y: self.y }
+        Self {
+            x: self.x + 1,
+            y: self.y,
+        }
     }
 
     fn sw(&self) -> Self {
-        Self { x: self.x - 1, y: self.y + 1 }
+        Self {
+            x: self.x - 1,
+            y: self.y + 1,
+        }
     }
 
     fn s(&self) -> Self {
-        Self { x: self.x, y: self.y + 1 }
+        Self {
+            x: self.x,
+            y: self.y + 1,
+        }
     }
 
     fn se(&self) -> Self {
-        Self { x: self.x + 1, y: self.y + 1 }
+        Self {
+            x: self.x + 1,
+            y: self.y + 1,
+        }
     }
 
     fn all_adjacent(&self) -> Vec<Self> {
-        vec![self.nw(), self.n(), self.ne(), self.w(), self.e(), self.sw(), self.s(), self.se()]
+        vec![
+            self.nw(),
+            self.n(),
+            self.ne(),
+            self.w(),
+            self.e(),
+            self.sw(),
+            self.s(),
+            self.se(),
+        ]
     }
 }
 
@@ -99,10 +132,15 @@ fn solve_part_2(input: &str) -> usize {
 fn simulate_iteration(iteration: usize, elf_positions: HashSet<Point>) -> HashSet<Point> {
     let directions = Direction::get_directions_shifted(iteration);
 
-    let mut proposed_new_positions: HashMap<Point, Point> = HashMap::with_capacity(elf_positions.len());
+    let mut proposed_new_positions: HashMap<Point, Point> =
+        HashMap::with_capacity(elf_positions.len());
 
     for &elf in &elf_positions {
-        if !elf.all_adjacent().into_iter().any(|p| elf_positions.contains(&p)) {
+        if !elf
+            .all_adjacent()
+            .into_iter()
+            .any(|p| elf_positions.contains(&p))
+        {
             // No adjacent elves
             proposed_new_positions.insert(elf, elf);
             continue;
@@ -155,7 +193,12 @@ fn simulate_iteration(iteration: usize, elf_positions: HashSet<Point>) -> HashSe
     }
 
     for (&elf, proposed_new_position) in proposed_new_positions.iter_mut() {
-        if proposed_position_counts.get(proposed_new_position).copied().unwrap() > 1 {
+        if proposed_position_counts
+            .get(proposed_new_position)
+            .copied()
+            .unwrap()
+            > 1
+        {
             *proposed_new_position = elf;
         }
     }
@@ -164,15 +207,19 @@ fn simulate_iteration(iteration: usize, elf_positions: HashSet<Point>) -> HashSe
 }
 
 fn get_minimums(positions: &HashSet<Point>) -> (i32, i32) {
-    positions.iter().fold((i32::MAX, i32::MAX), |(min_x, min_y), point| {
-        (cmp::min(min_x, point.x), cmp::min(min_y, point.y))
-    })
+    positions
+        .iter()
+        .fold((i32::MAX, i32::MAX), |(min_x, min_y), point| {
+            (cmp::min(min_x, point.x), cmp::min(min_y, point.y))
+        })
 }
 
 fn get_maximums(positions: &HashSet<Point>) -> (i32, i32) {
-    positions.iter().fold((i32::MIN, i32::MIN), |(max_x, max_y), point| {
-        (cmp::max(max_x, point.x), cmp::max(max_y, point.y))
-    })
+    positions
+        .iter()
+        .fold((i32::MIN, i32::MIN), |(max_x, max_y), point| {
+            (cmp::max(max_x, point.x), cmp::max(max_y, point.y))
+        })
 }
 
 fn parse_input(input: &str) -> HashSet<Point> {

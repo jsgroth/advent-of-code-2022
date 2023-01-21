@@ -40,19 +40,19 @@ impl Rotation {
                 Self::Invert => Self::None,
                 Self::Left => Self::Right,
                 Self::Right => Self::Left,
-            }
+            },
             Self::Left => match other {
                 Self::None => Self::Left,
                 Self::Left => Self::Invert,
                 Self::Invert => Self::Right,
                 Self::Right => Self::None,
-            }
+            },
             Self::Right => match other {
                 Self::None => Self::Right,
                 Self::Right => Self::Invert,
                 Self::Invert => Self::Left,
                 Self::Left => Self::None,
-            }
+            },
         }
     }
 
@@ -65,13 +65,13 @@ impl Rotation {
                 Direction::Left => Direction::Down,
                 Direction::Down => Direction::Right,
                 Direction::Right => Direction::Up,
-            }
+            },
             Self::Right => match direction {
                 Direction::Up => Direction::Right,
                 Direction::Left => Direction::Up,
                 Direction::Down => Direction::Left,
                 Direction::Right => Direction::Down,
-            }
+            },
         }
     }
 
@@ -91,7 +91,10 @@ impl Rotation {
             Self::Left => vec![vec![0, -1], vec![1, 0]],
             Self::Right => vec![vec![0, 1], vec![-1, 0]],
         };
-        (dx * rotate_matrix[0][0] + dy * rotate_matrix[1][0], dx * rotate_matrix[0][1] + dy * rotate_matrix[1][1])
+        (
+            dx * rotate_matrix[0][0] + dy * rotate_matrix[1][0],
+            dx * rotate_matrix[0][1] + dy * rotate_matrix[1][1],
+        )
     }
 }
 
@@ -155,11 +158,9 @@ impl CubeFaceInProgress {
             (Direction::Down, self.down),
             (Direction::Right, self.right),
         ]
-            .into_iter()
-            .filter_map(|(direction, connection)| {
-                connection.map(|connection| (direction, connection))
-            })
-            .collect()
+        .into_iter()
+        .filter_map(|(direction, connection)| connection.map(|connection| (direction, connection)))
+        .collect()
     }
 
     fn set_if_none(&mut self, direction: &Direction, connection: CubeConnection) {
@@ -212,7 +213,10 @@ fn solve(input: &str) -> usize {
     let cols = map[0].len() as i32;
 
     let mut i = 0;
-    let mut j = map[i].iter().position(|&space| space != Space::Void).expect("first line should have a non-void space");
+    let mut j = map[i]
+        .iter()
+        .position(|&space| space != Space::Void)
+        .expect("first line should have a non-void space");
     let mut dx = 1;
     let mut dy = 0;
     for instruction in &instructions {
@@ -338,9 +342,10 @@ fn solution(i: usize, j: usize, dx: i32, dy: i32) -> usize {
 }
 
 fn split_map_into_cube_faces(map: &Vec<Vec<Space>>) -> Vec<CubeFace> {
-    let num_non_void: usize = map.iter().map(|row| {
-        row.iter().filter(|&&space| space != Space::Void).count()
-    }).sum();
+    let num_non_void: usize = map
+        .iter()
+        .map(|row| row.iter().filter(|&&space| space != Space::Void).count())
+        .sum();
 
     let cube_face_size = num_non_void / 6;
     let cube_side_len = (cube_face_size as f64).sqrt().round() as usize;
@@ -368,28 +373,52 @@ fn split_map_into_cube_faces(map: &Vec<Vec<Space>>) -> Vec<CubeFace> {
     for cube_index in 0..6 {
         let (tl_i, tl_j) = cube_top_lefts[cube_index];
         if tl_i > 0 {
-            if let Some(other_index) = cube_top_lefts.iter().position(|&(i, j)| i == tl_i - cube_side_len && j == tl_j) {
-                cube_faces_in_progress[cube_index].up = Some(CubeConnection::new(other_index, Rotation::None));
+            if let Some(other_index) = cube_top_lefts
+                .iter()
+                .position(|&(i, j)| i == tl_i - cube_side_len && j == tl_j)
+            {
+                cube_faces_in_progress[cube_index].up =
+                    Some(CubeConnection::new(other_index, Rotation::None));
             }
         }
         if tl_j > 0 {
-            if let Some(other_index) = cube_top_lefts.iter().position(|&(i, j)| i == tl_i && j == tl_j - cube_side_len) {
-                cube_faces_in_progress[cube_index].left = Some(CubeConnection::new(other_index, Rotation::None));
+            if let Some(other_index) = cube_top_lefts
+                .iter()
+                .position(|&(i, j)| i == tl_i && j == tl_j - cube_side_len)
+            {
+                cube_faces_in_progress[cube_index].left =
+                    Some(CubeConnection::new(other_index, Rotation::None));
             }
         }
-        if let Some(other_index) = cube_top_lefts.iter().position(|&(i, j)| i == tl_i + cube_side_len && j == tl_j) {
-            cube_faces_in_progress[cube_index].down = Some(CubeConnection::new(other_index, Rotation::None));
+        if let Some(other_index) = cube_top_lefts
+            .iter()
+            .position(|&(i, j)| i == tl_i + cube_side_len && j == tl_j)
+        {
+            cube_faces_in_progress[cube_index].down =
+                Some(CubeConnection::new(other_index, Rotation::None));
         }
-        if let Some(other_index) = cube_top_lefts.iter().position(|&(i, j)| i == tl_i && j == tl_j + cube_side_len) {
-            cube_faces_in_progress[cube_index].right = Some(CubeConnection::new(other_index, Rotation::None));
+        if let Some(other_index) = cube_top_lefts
+            .iter()
+            .position(|&(i, j)| i == tl_i && j == tl_j + cube_side_len)
+        {
+            cube_faces_in_progress[cube_index].right =
+                Some(CubeConnection::new(other_index, Rotation::None));
         }
     }
 
-    while !cube_faces_in_progress.iter().all(CubeFaceInProgress::is_fully_populated) {
+    while !cube_faces_in_progress
+        .iter()
+        .all(CubeFaceInProgress::is_fully_populated)
+    {
         for i in 0..cube_faces_in_progress.len() {
             for (direction, connection) in cube_faces_in_progress[i].all_connections() {
-                for (other_direction, other_connection) in cube_faces_in_progress[connection.index].all_connections() {
-                    let other_rotated = connection.rotation.flip().rotate_direction(&other_direction);
+                for (other_direction, other_connection) in
+                    cube_faces_in_progress[connection.index].all_connections()
+                {
+                    let other_rotated = connection
+                        .rotation
+                        .flip()
+                        .rotate_direction(&other_direction);
                     if direction == other_rotated || direction == other_rotated.invert() {
                         continue;
                     }
@@ -406,14 +435,22 @@ fn split_map_into_cube_faces(map: &Vec<Vec<Space>>) -> Vec<CubeFace> {
                         _ => panic!("should never happen due to above if check: direction={direction:?}, other_direction={other_direction:?}"),
                     };
 
-                    let rotated_rotation = rotation.rotate(&connection.rotation).rotate(&other_connection.rotation);
-                    cube_faces_in_progress[i].set_if_none(&direction, CubeConnection::new(other_connection.index, rotated_rotation));
+                    let rotated_rotation = rotation
+                        .rotate(&connection.rotation)
+                        .rotate(&other_connection.rotation);
+                    cube_faces_in_progress[i].set_if_none(
+                        &direction,
+                        CubeConnection::new(other_connection.index, rotated_rotation),
+                    );
                 }
             }
         }
     }
 
-    cube_faces_in_progress.into_iter().map(CubeFaceInProgress::into_cube_face).collect()
+    cube_faces_in_progress
+        .into_iter()
+        .map(CubeFaceInProgress::into_cube_face)
+        .collect()
 }
 
 fn parse_input(input: &str) -> (Vec<Vec<Space>>, Vec<Instruction>) {
@@ -429,7 +466,11 @@ fn parse_input(input: &str) -> (Vec<Vec<Space>>, Vec<Instruction>) {
 
 fn parse_map(map_lines: &[&str]) -> Vec<Vec<Space>> {
     let rows = map_lines.len();
-    let cols = map_lines.iter().map(|line| line.len()).max().expect("map should not be empty");
+    let cols = map_lines
+        .iter()
+        .map(|line| line.len())
+        .max()
+        .expect("map should not be empty");
 
     let mut map = vec![vec![Space::Void; cols]; rows];
     for (i, line) in map_lines.iter().enumerate() {

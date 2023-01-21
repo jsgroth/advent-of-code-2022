@@ -47,11 +47,15 @@ fn solve(grid: &Vec<Vec<u8>>, start: Option<(usize, usize)>, end: (usize, usize)
 
             if grid[i][j] <= grid[ii][jj] + 1 {
                 match start {
-                    Some(start) => if (ii, jj) == start {
-                        return distance + 1;
+                    Some(start) => {
+                        if (ii, jj) == start {
+                            return distance + 1;
+                        }
                     }
-                    None => if grid[ii][jj] == 0 {
-                        return distance + 1;
+                    None => {
+                        if grid[ii][jj] == 0 {
+                            return distance + 1;
+                        }
                     }
                 }
 

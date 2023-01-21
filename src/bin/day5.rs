@@ -25,7 +25,9 @@ fn solve(input: &str, can_move_in_bulk: bool) -> String {
         stacks[mov.to - 1].extend(&moved_chars);
     }
 
-    stacks.iter().map(|stack| stack.last().expect("no stack should be empty"))
+    stacks
+        .iter()
+        .map(|stack| stack.last().expect("no stack should be empty"))
         .collect()
 }
 
@@ -42,14 +44,15 @@ fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<Move>) {
 }
 
 fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
-    let num_stacks: usize = lines.last()
+    let num_stacks: usize = lines
+        .last()
         .and_then(|line| line.split_whitespace().last())
         .and_then(|last_char| last_char.parse().ok())
         .expect("line before empty line should end in a number");
 
     let mut stacks: Vec<Vec<char>> = vec![Vec::new(); num_stacks];
-    
-    for line in lines[..lines.len()-1].iter().rev() {
+
+    for line in lines[..lines.len() - 1].iter().rev() {
         for (i, c) in line.chars().skip(1).step_by(4).enumerate() {
             if c != ' ' {
                 stacks[i].push(c);
@@ -61,15 +64,17 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
 }
 
 fn parse_moves(lines: &[&str]) -> Vec<Move> {
-    lines.iter().map(|line| {
-        let mut split = line.split_whitespace().skip(1).step_by(2);
+    lines
+        .iter()
+        .map(|line| {
+            let mut split = line.split_whitespace().skip(1).step_by(2);
 
-        let num = split.next().unwrap().parse().expect("number to move");
-        let from = split.next().unwrap().parse().expect("stack to move from");
-        let to = split.next().unwrap().parse().expect("stack to move to");
+            let num = split.next().unwrap().parse().expect("number to move");
+            let from = split.next().unwrap().parse().expect("stack to move from");
+            let to = split.next().unwrap().parse().expect("stack to move to");
 
-        Move { from, to, num }
-    })
+            Move { from, to, num }
+        })
         .collect()
 }
 

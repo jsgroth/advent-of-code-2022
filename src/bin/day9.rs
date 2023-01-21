@@ -29,7 +29,9 @@ fn solve(input: &str, rope_len: usize) -> usize {
     tail_visited.insert(Point::new(0, 0));
 
     for line in input.lines() {
-        let (direction, distance) = line.split_once(' ').expect("every line should have a space");
+        let (direction, distance) = line
+            .split_once(' ')
+            .expect("every line should have a space");
         let distance: i32 = distance.parse().expect("distance should be an integer");
 
         let (dx, dy) = parse_direction(direction);

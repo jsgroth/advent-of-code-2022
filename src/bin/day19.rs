@@ -16,7 +16,15 @@ struct Blueprint {
 
 impl Blueprint {
     fn max_ore_cost(&self) -> u32 {
-        [self.ore_robot_ore_cost, self.clay_robot_ore_cost, self.obsidian_robot_ore_cost, self.geode_robot_ore_cost].into_iter().max().unwrap()
+        [
+            self.ore_robot_ore_cost,
+            self.clay_robot_ore_cost,
+            self.obsidian_robot_ore_cost,
+            self.geode_robot_ore_cost,
+        ]
+        .into_iter()
+        .max()
+        .unwrap()
     }
 }
 
@@ -48,9 +56,10 @@ impl SearchState {
 fn solve(input: &str) -> u32 {
     let blueprints = parse_input(input);
 
-    blueprints.into_iter().enumerate().map(|(i, blueprint)| {
-        find_max_for_blueprint(&blueprint, 24) * ((i + 1) as u32)
-    })
+    blueprints
+        .into_iter()
+        .enumerate()
+        .map(|(i, blueprint)| find_max_for_blueprint(&blueprint, 24) * ((i + 1) as u32))
         .sum()
 }
 
@@ -63,9 +72,9 @@ fn solve_part_2(input: &str) -> u32 {
         &blueprints[..]
     };
 
-    first_blueprints.iter().map(|blueprint| {
-        find_max_for_blueprint(blueprint, 32)
-    })
+    first_blueprints
+        .iter()
+        .map(|blueprint| find_max_for_blueprint(blueprint, 32))
         .product()
 }
 
@@ -121,65 +130,85 @@ fn search(
     let mut result = u32::MIN;
 
     if ore >= blueprint.geode_robot_ore_cost && obsidian >= blueprint.geode_robot_obsidian_cost {
-        result = (remaining - 1) + search(
-            blueprint,
-            SearchState {
-                ore: next_state.ore - blueprint.geode_robot_ore_cost,
-                obsidian: next_state.obsidian - blueprint.geode_robot_obsidian_cost,
-                ..next_state
-            },
-            current_total + remaining - 1,
-            result_cache,
-            max_so_far
-        );
+        result = (remaining - 1)
+            + search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.geode_robot_ore_cost,
+                    obsidian: next_state.obsidian - blueprint.geode_robot_obsidian_cost,
+                    ..next_state
+                },
+                current_total + remaining - 1,
+                result_cache,
+                max_so_far,
+            );
     }
 
     if ore >= blueprint.ore_robot_ore_cost && ore_robots < blueprint.max_ore_cost() {
-        result = cmp::max(result, search(
-            blueprint,
-            SearchState {
-                ore: next_state.ore - blueprint.ore_robot_ore_cost,
-                ore_robots: ore_robots + 1,
-                ..next_state
-            },
-            current_total,
-            result_cache,
-            max_so_far
-        ));
+        result = cmp::max(
+            result,
+            search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.ore_robot_ore_cost,
+                    ore_robots: ore_robots + 1,
+                    ..next_state
+                },
+                current_total,
+                result_cache,
+                max_so_far,
+            ),
+        );
     }
 
     if ore >= blueprint.clay_robot_ore_cost && clay_robots < blueprint.obsidian_robot_clay_cost {
-        result = cmp::max(result, search(
-            blueprint,
-            SearchState {
-                ore: next_state.ore - blueprint.clay_robot_ore_cost,
-                clay_robots: clay_robots + 1,
-                ..next_state
-            },
-            current_total,
-            result_cache,
-            max_so_far
-        ));
+        result = cmp::max(
+            result,
+            search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.clay_robot_ore_cost,
+                    clay_robots: clay_robots + 1,
+                    ..next_state
+                },
+                current_total,
+                result_cache,
+                max_so_far,
+            ),
+        );
     }
 
-    if ore >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost &&
-        obsidian_robots < blueprint.geode_robot_obsidian_cost
+    if ore >= blueprint.obsidian_robot_ore_cost
+        && clay >= blueprint.obsidian_robot_clay_cost
+        && obsidian_robots < blueprint.geode_robot_obsidian_cost
     {
-        result = cmp::max(result, search(
-            blueprint,
-            SearchState {
-                ore: next_state.ore - blueprint.obsidian_robot_ore_cost,
-                clay: next_state.clay - blueprint.obsidian_robot_clay_cost,
-                obsidian_robots: obsidian_robots + 1,
-                ..next_state
-            },
-            current_total,
-            result_cache,
-            max_so_far
-        ));
+        result = cmp::max(
+            result,
+            search(
+                blueprint,
+                SearchState {
+                    ore: next_state.ore - blueprint.obsidian_robot_ore_cost,
+                    clay: next_state.clay - blueprint.obsidian_robot_clay_cost,
+                    obsidian_robots: obsidian_robots + 1,
+                    ..next_state
+                },
+                current_total,
+                result_cache,
+                max_so_far,
+            ),
+        );
     }
 
-    result = cmp::max(result, search(blueprint, next_state, current_total, result_cache, max_so_far));
+    result = cmp::max(
+        result,
+        search(
+            blueprint,
+            next_state,
+            current_total,
+            result_cache,
+            max_so_far,
+        ),
+    );
 
     result_cache.insert(state, result);
     *max_so_far = cmp::max(*max_so_far, current_total + result);
@@ -210,14 +239,18 @@ fn estimate_max_possible(blueprint: &Blueprint, state: &SearchState) -> u32 {
     let mut geode_robots = 0;
     while remaining > 0 {
         geode += geode_robots;
-        if ore_for_geode >= blueprint.geode_robot_ore_cost && obsidian >= blueprint.geode_robot_obsidian_cost {
+        if ore_for_geode >= blueprint.geode_robot_ore_cost
+            && obsidian >= blueprint.geode_robot_obsidian_cost
+        {
             geode_robots += 1;
             ore_for_geode -= blueprint.geode_robot_ore_cost;
             obsidian -= blueprint.geode_robot_obsidian_cost;
         }
 
         obsidian += obsidian_robots;
-        if ore_for_obsidian >= blueprint.obsidian_robot_ore_cost && clay >= blueprint.obsidian_robot_clay_cost {
+        if ore_for_obsidian >= blueprint.obsidian_robot_ore_cost
+            && clay >= blueprint.obsidian_robot_clay_cost
+        {
             obsidian_robots += 1;
             ore_for_obsidian -= blueprint.obsidian_robot_ore_cost;
             clay -= blueprint.obsidian_robot_clay_cost;
@@ -246,35 +279,49 @@ fn estimate_max_possible(blueprint: &Blueprint, state: &SearchState) -> u32 {
 }
 
 fn parse_input(input: &str) -> Vec<Blueprint> {
-    input.lines().map(|line| {
-        let mut split = line.split(' ').skip(6);
+    input
+        .lines()
+        .map(|line| {
+            let mut split = line.split(' ').skip(6);
 
-        let ore_robot_ore_cost = split.next().unwrap().parse().expect("ore robot ore cost");
+            let ore_robot_ore_cost = split.next().unwrap().parse().expect("ore robot ore cost");
 
-        let mut split = split.skip(5);
-        let clay_robot_ore_cost = split.next().unwrap().parse().expect("clay robot ore cost");
+            let mut split = split.skip(5);
+            let clay_robot_ore_cost = split.next().unwrap().parse().expect("clay robot ore cost");
 
-        let mut split = split.skip(5);
-        let obsidian_robot_ore_cost = split.next().unwrap().parse().expect("obsidian robot ore cost");
+            let mut split = split.skip(5);
+            let obsidian_robot_ore_cost = split
+                .next()
+                .unwrap()
+                .parse()
+                .expect("obsidian robot ore cost");
 
-        let mut split = split.skip(2);
-        let obsidian_robot_clay_cost = split.next().unwrap().parse().expect("obsidian robot clay cost");
+            let mut split = split.skip(2);
+            let obsidian_robot_clay_cost = split
+                .next()
+                .unwrap()
+                .parse()
+                .expect("obsidian robot clay cost");
 
-        let mut split = split.skip(5);
-        let geode_robot_ore_cost = split.next().unwrap().parse().expect("geode robot ore cost");
+            let mut split = split.skip(5);
+            let geode_robot_ore_cost = split.next().unwrap().parse().expect("geode robot ore cost");
 
-        let mut split = split.skip(2);
-        let geode_robot_obsidian_cost = split.next().unwrap().parse().expect("geode robot obsidian cost");
+            let mut split = split.skip(2);
+            let geode_robot_obsidian_cost = split
+                .next()
+                .unwrap()
+                .parse()
+                .expect("geode robot obsidian cost");
 
-        Blueprint {
-            ore_robot_ore_cost,
-            clay_robot_ore_cost,
-            obsidian_robot_ore_cost,
-            obsidian_robot_clay_cost,
-            geode_robot_ore_cost,
-            geode_robot_obsidian_cost,
-        }
-    })
+            Blueprint {
+                ore_robot_ore_cost,
+                clay_robot_ore_cost,
+                obsidian_robot_ore_cost,
+                obsidian_robot_clay_cost,
+                geode_robot_ore_cost,
+                geode_robot_obsidian_cost,
+            }
+        })
         .collect()
 }
 

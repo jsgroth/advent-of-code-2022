@@ -18,7 +18,10 @@ impl NumberList {
         let mut indices = Vec::with_capacity(v.len());
         let mut zero_index: Option<usize> = None;
         for (i, n) in v.into_iter().enumerate() {
-            nodes.push(Node { value: n, original_index: i });
+            nodes.push(Node {
+                value: n,
+                original_index: i,
+            });
             indices.push(i);
             if n == 0 {
                 zero_index = Some(i);
@@ -58,14 +61,16 @@ impl NumberList {
 
     fn swap(&mut self, i: usize, j: usize) {
         self.nodes.swap(i, j);
-        self.indices.swap(self.nodes[i].original_index, self.nodes[j].original_index);
+        self.indices
+            .swap(self.nodes[i].original_index, self.nodes[j].original_index);
     }
 }
 
 fn solve(input: &str, multiplier: i64, iterations: usize) -> i64 {
-    let numbers: Vec<_> = parse_input(input).into_iter().map(|n| {
-        n * multiplier
-    }).collect();
+    let numbers: Vec<_> = parse_input(input)
+        .into_iter()
+        .map(|n| n * multiplier)
+        .collect();
     let mut list = NumberList::from_vec(numbers);
 
     for _ in 0..iterations {
@@ -86,8 +91,12 @@ fn solve_part_2(input: &str) -> i64 {
 }
 
 fn parse_input(input: &str) -> Vec<i64> {
-    input.lines()
-        .map(|line| line.parse::<i64>().expect("each line should contain an integer"))
+    input
+        .lines()
+        .map(|line| {
+            line.parse::<i64>()
+                .expect("each line should contain an integer")
+        })
         .collect()
 }
 

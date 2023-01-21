@@ -36,7 +36,11 @@ fn solve(input: &str) -> usize {
         }
     }
 
-    visible_tree_positions.iter().flatten().filter(|b| **b).count()
+    visible_tree_positions
+        .iter()
+        .flatten()
+        .filter(|b| **b)
+        .count()
 }
 
 fn solve_part_2(input: &str) -> usize {
@@ -45,33 +49,34 @@ fn solve_part_2(input: &str) -> usize {
     let rows = grid.len();
     let cols = grid[0].len();
 
-    (0..rows).flat_map(|i| {
-        let grid_ref = &grid;
-        (0..cols).map(move |j| compute_scenic_score(grid_ref, i, j))
-    })
+    (0..rows)
+        .flat_map(|i| {
+            let grid_ref = &grid;
+            (0..cols).map(move |j| compute_scenic_score(grid_ref, i, j))
+        })
         .max()
         .unwrap()
 }
 
 fn parse_input(input: &str) -> Vec<Vec<u8>> {
-    input.lines().map(|line| {
-        line.as_bytes().iter().map(|c| {
-            *c - b'0'
-        }).collect()
-    }).collect()
+    input
+        .lines()
+        .map(|line| line.as_bytes().iter().map(|c| *c - b'0').collect())
+        .collect()
 }
 
 fn col_iter<T>(grid: &Vec<Vec<T>>, j: usize) -> impl Iterator<Item = T> + DoubleEndedIterator + '_
-where T: Copy
+where
+    T: Copy,
 {
     let rows = grid.len();
     (0..rows).map(move |i| grid[i][j])
 }
 
 fn empty_matrix<T: Copy>(rows: usize, cols: usize, default_value: T) -> Vec<Vec<T>> {
-    (0..rows).map(|_| {
-        (0..cols).map(|_| default_value).collect()
-    }).collect()
+    (0..rows)
+        .map(|_| (0..cols).map(|_| default_value).collect())
+        .collect()
 }
 
 fn find_visible_positions<I>(iter: I) -> Vec<usize>
@@ -93,10 +98,12 @@ where
         heap.push(Reverse((height, i)));
     }
 
-    heap.iter().map(|rev| {
-        let (_, i) = rev.0;
-        i
-    }).collect()
+    heap.iter()
+        .map(|rev| {
+            let (_, i) = rev.0;
+            i
+        })
+        .collect()
 }
 
 fn compute_scenic_score(grid: &Vec<Vec<u8>>, i: usize, j: usize) -> usize {

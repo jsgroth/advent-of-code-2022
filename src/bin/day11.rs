@@ -20,7 +20,7 @@ impl MonkeyOperation {
                 let operand: u64 = operand.parse().expect("operand should be an integer");
                 Self::Add(operand)
             }
-            _ => panic!("unexpected operation: {s}")
+            _ => panic!("unexpected operation: {s}"),
         }
     }
 
@@ -116,9 +116,7 @@ fn solve_part_2(input: &str) -> u64 {
 
 fn parse_input(input: &str) -> Vec<Monkey> {
     let lines: Vec<_> = input.lines().collect();
-    lines.split(|s| s.is_empty())
-        .map(parse_monkey)
-        .collect()
+    lines.split(|s| s.is_empty()).map(parse_monkey).collect()
 }
 
 fn parse_monkey(lines: &[&str]) -> Monkey {
@@ -127,8 +125,12 @@ fn parse_monkey(lines: &[&str]) -> Monkey {
     iter.next().expect("should be monkey header line");
 
     let items_line = iter.next().expect("starting items line");
-    let starting_items: Vec<_> = items_line["  Starting items: ".len()..].split(", ")
-        .map(|item| item.parse::<u64>().expect("every starting item should be an integer"))
+    let starting_items: Vec<_> = items_line["  Starting items: ".len()..]
+        .split(", ")
+        .map(|item| {
+            item.parse::<u64>()
+                .expect("every starting item should be an integer")
+        })
         .collect();
 
     let operation_line = iter.next().expect("operation line");
@@ -136,17 +138,35 @@ fn parse_monkey(lines: &[&str]) -> Monkey {
     let operation = MonkeyOperation::from_str(operation_str);
 
     let test_line = iter.next().expect("test line");
-    let divisible_test: u64 = test_line.split(' ').last().expect("Test line should have a space")
-        .parse().expect("divisible by test should be an integer");
+    let divisible_test: u64 = test_line
+        .split(' ')
+        .last()
+        .expect("Test line should have a space")
+        .parse()
+        .expect("divisible by test should be an integer");
 
     let true_line = iter.next().expect("true line");
-    let true_monkey: usize = true_line.split(' ').last().expect("If true line should have a space")
-        .parse().expect("if true monkey should be an integer");
+    let true_monkey: usize = true_line
+        .split(' ')
+        .last()
+        .expect("If true line should have a space")
+        .parse()
+        .expect("if true monkey should be an integer");
     let false_line = iter.next().expect("false line");
-    let false_monkey: usize = false_line.split(' ').last().expect("If false line should have a space")
-        .parse().expect("if false monkey should be an integer");
+    let false_monkey: usize = false_line
+        .split(' ')
+        .last()
+        .expect("If false line should have a space")
+        .parse()
+        .expect("if false monkey should be an integer");
 
-    Monkey::new(starting_items, operation, divisible_test, true_monkey, false_monkey)
+    Monkey::new(
+        starting_items,
+        operation,
+        divisible_test,
+        true_monkey,
+        false_monkey,
+    )
 }
 
 fn main() {

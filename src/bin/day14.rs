@@ -15,7 +15,9 @@ struct SparseGrid {
 
 impl SparseGrid {
     fn new() -> Self {
-        Self { grid: HashSet::new() }
+        Self {
+            grid: HashSet::new(),
+        }
     }
 
     fn get(&self, x: i32, y: i32) -> bool {

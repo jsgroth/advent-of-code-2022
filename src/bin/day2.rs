@@ -52,35 +52,41 @@ const DRAW_SCORE: i32 = 3;
 const LOSE_SCORE: i32 = 0;
 
 fn solve(input: &str) -> i32 {
-    input.lines().map(|line| {
-        let opponent_play = Play::from_char(line.chars().next().expect("no line should be empty"));
-        let your_play = Play::from_char(line.chars().last().expect("no line should be empty"));
+    input
+        .lines()
+        .map(|line| {
+            let opponent_play =
+                Play::from_char(line.chars().next().expect("no line should be empty"));
+            let your_play = Play::from_char(line.chars().last().expect("no line should be empty"));
 
-        let game_score = if opponent_play == your_play {
-            DRAW_SCORE
-        } else if your_play.beats(&opponent_play) {
-            WIN_SCORE
-        } else {
-            LOSE_SCORE
-        };
+            let game_score = if opponent_play == your_play {
+                DRAW_SCORE
+            } else if your_play.beats(&opponent_play) {
+                WIN_SCORE
+            } else {
+                LOSE_SCORE
+            };
 
-        game_score + your_play.point_value()
-    })
+            game_score + your_play.point_value()
+        })
         .sum()
 }
 
 fn solve_part_2(input: &str) -> i32 {
-    input.lines().map(|line| {
-        let opponent_play = Play::from_char(line.chars().next().expect("no line should be empty"));
+    input
+        .lines()
+        .map(|line| {
+            let opponent_play =
+                Play::from_char(line.chars().next().expect("no line should be empty"));
 
-        let last_char = line.chars().last().expect("no line should be empty");
-        match last_char {
-            'X' => LOSE_SCORE + opponent_play.get_losing_play().point_value(),
-            'Y' => DRAW_SCORE + opponent_play.point_value(),
-            'Z' => WIN_SCORE + opponent_play.get_winning_play().point_value(),
-            _ => panic!("every line should end in X/Y/Z"),
-        }
-    })
+            let last_char = line.chars().last().expect("no line should be empty");
+            match last_char {
+                'X' => LOSE_SCORE + opponent_play.get_losing_play().point_value(),
+                'Y' => DRAW_SCORE + opponent_play.point_value(),
+                'Z' => WIN_SCORE + opponent_play.get_winning_play().point_value(),
+                _ => panic!("every line should end in X/Y/Z"),
+            }
+        })
         .sum()
 }
 
